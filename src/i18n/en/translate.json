@@ -1,0 +1,9 @@
+{
+  "HELLO_WORD": "Hello word",
+  "DATA_NOT_FOUND": "Data not found",
+  "NOT_PERMISSION": "You not permission to do action.",
+
+  "SHARE_EVENT": {
+    "COMMON_ERR_NOT_FOUND": "{0.obj} not found"
+  }
+}

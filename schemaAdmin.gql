@@ -2,33 +2,43 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-input DeleteFileDto {
-  url: String!
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type IRole {
+  createdAt: DateTime
+  id: ID!
+  name: String!
+  updatedAt: DateTime
 }
 
-type IPreSignUrl {
-  fileType: String!
-  pathFile: String!
-  uploadUrl: String!
+type IRoles {
+  items: [IRole!]!
+  meta: MetaPaginationInterface!
 }
 
-type Mutation {
-  deleteFileS3(deleteFileDto: DeleteFileDto!): String!
-  presignedUrlS3(presignedUrlDto: PresignedUrlDto!): IPreSignUrl!
-  presignedUrlS3Public(presignedUrlDto: PresignedUrlDto!): IPreSignUrl!
-}
-
-input PresignedUrlDto {
-  fileName: String!
-  fileType: String!
-  pathType: S3_UPLOAD_TYPE!
+type MetaPaginationInterface {
+  currentPage: Float!
+  itemCount: Float!
+  itemsPerPage: Float!
+  totalItems: Float!
+  totalPages: Float!
 }
 
 type Query {
-  testQuery: String!
+  getRole(id: ID!): IRole!
+  getRoles(queryParams: QueryFilter!): IRoles!
 }
 
-enum S3_UPLOAD_TYPE {
-  Profile
-  Public
+input QueryFilter {
+  "\n- Paginate with limit and offset. Ex: limit:10, page:1\n"
+  limit: Float = 10
+
+  "\n- Order by fields and order reverse use prefix \"ASC or DESC\". Ex: orderBy: \"User.createdAt:DESC\"\n- Use NULLS_FIRST OR NULLS_LAST to determine where null value should be, Ex: orderBy: \"User.createdAt:DESC:NULLS_FIRST\"\n"
+  orderBy: String
+
+  "\n- Paginate with limit and offset. Ex: limit:10, page:1\n"
+  page: Float! = 1
 }

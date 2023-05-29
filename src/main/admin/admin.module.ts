@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import { join } from 'path';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -18,8 +19,9 @@ import { join } from 'path';
         };
         return graphQLFormattedError;
       },
-      include: [],
+      include: [RoleModule],
     }),
+    RoleModule,
   ],
 })
 export class AdminModule {}

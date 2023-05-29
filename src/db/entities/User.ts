@@ -1,6 +1,7 @@
-import { CustomBaseEntity } from '@/base/baseEntity';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+import { CustomBaseEntity } from '@/common/base/baseEntity';
 
 @ObjectType({ isAbstract: true })
 @Entity('user')

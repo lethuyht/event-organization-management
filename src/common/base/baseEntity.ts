@@ -1,4 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
+import { GraphQLResolveInfo } from 'graphql';
 import {
   BaseEntity,
   BeforeInsert,

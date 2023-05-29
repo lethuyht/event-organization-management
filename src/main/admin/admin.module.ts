@@ -4,6 +4,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import { join } from 'path';
 import { RoleModule } from './role/role.module';
+import { AuthAdminModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -19,9 +20,10 @@ import { RoleModule } from './role/role.module';
         };
         return graphQLFormattedError;
       },
-      include: [RoleModule],
+      include: [RoleModule, AuthAdminModule],
     }),
     RoleModule,
+    AuthAdminModule,
   ],
 })
 export class AdminModule {}

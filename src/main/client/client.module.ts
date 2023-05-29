@@ -4,6 +4,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import { join } from 'path';
 import { UploadModule } from '../shared/upload/upload.module';
+import { AuthClientModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -19,9 +20,10 @@ import { UploadModule } from '../shared/upload/upload.module';
         };
         return graphQLFormattedError;
       },
-      include: [UploadModule],
+      include: [UploadModule, AuthClientModule],
     }),
     UploadModule,
+    AuthClientModule,
   ],
 })
 export class ClientModule {}

@@ -7,7 +7,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class Role extends CustomBaseEntity {
   @PrimaryGeneratedColumn()
   @Field(() => ID)
-  id: number;
+  id: string;
 
   @Field()
   @Column()

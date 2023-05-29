@@ -28,3 +28,7 @@ export enum S3_UPLOAD_TYPE {
   Public = 'Public',
   Profile = 'Profile',
 }
+
+export const EXPIRATION_TIME = {
+  VerificationRequest: 5,
+};

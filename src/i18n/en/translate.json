@@ -2,7 +2,16 @@
   "HELLO_WORD": "Hello word",
   "DATA_NOT_FOUND": "Data not found",
   "NOT_PERMISSION": "You not permission to do action.",
-
+  "USER_NOT_FOUND": "User not found",
+  "EMAIL_EXIST": "An account with this email already exists. Please enter another email.",
+  "ROLE_NOT_FOUND": "Role not found.",
+  "SUCCESSFULLY": "Successfully",
+  "ACCOUNT_NOT_EXIST": "An account with this email does not exist.",
+  "CODE_INCORRECT_OR_EXPIRED": "You have entered an invalid verification code. Please try again.",
+  "INCORRECT_EMAIL_OR_PASSWORD": "Incorrect your email or password.",
+  "DELETED_SUCCESSFULLY": "Deleted successfully.",
+  "INVALID_REFRESH_TOKEN": "Refresh token is invalid.",
+  "REFRESH_TOKEN_EXPIRE": "Refresh token expired",
   "SHARE_EVENT": {
     "COMMON_ERR_NOT_FOUND": "{0.obj} not found"
   }

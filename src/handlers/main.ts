@@ -59,11 +59,6 @@ async function bootstrap() {
           false,
         ),
         Logger.warn(
-          `🚀  Health Check http://${domain}:${port}/health`,
-          'Bootstrap',
-          false,
-        ),
-        Logger.warn(
           `🚀  Admin Server http://${domain}:${port}/admin`,
           'Bootstrap',
           false,
@@ -73,21 +68,21 @@ async function bootstrap() {
           'Bootstrap',
           false,
         ),
-        Logger.warn(
-          `🚀  Public Server http://${domain}:${port}/public`,
-          'Bootstrap',
-          false,
-        ),
-        Logger.warn(
-          `🚀  Stripe Account Webhook http://${domain}:${port}/stripe-webhooks/connected-account`,
-          'Bootstrap',
-          false,
-        ),
-        Logger.warn(
-          `🚀  Stripe Checkout Session Webhook http://${domain}:${port}/stripe-webhooks/edluma-account`,
-          'Bootstrap',
-          false,
-        ),
+        // Logger.warn(
+        //   `🚀  Public Server http://${domain}:${port}/public`,
+        //   'Bootstrap',
+        //   false,
+        // ),
+        // Logger.warn(
+        //   `🚀  Stripe Account Webhook http://${domain}:${port}/stripe-webhooks/connected-account`,
+        //   'Bootstrap',
+        //   false,
+        // ),
+        // Logger.warn(
+        //   `🚀  Stripe Checkout Session Webhook http://${domain}:${port}/stripe-webhooks/edluma-account`,
+        //   'Bootstrap',
+        //   false,
+        // ),
         Logger.log(
           `##########################################################`,
           'Bootstrap',

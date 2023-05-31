@@ -32,3 +32,24 @@ export enum S3_UPLOAD_TYPE {
 export const EXPIRATION_TIME = {
   VerificationRequest: 5,
 };
+
+export enum Gender {
+  MALE = 'Male',
+  FEMALE = 'Female',
+  NON_BINARY = 'Non-binary',
+}
+
+export enum QUERY_OPERATOR {
+  in = 'in',
+  nin = 'nin',
+  eq = 'eq',
+  neq = 'neq',
+  lt = 'lt',
+  lte = 'lte',
+  gt = 'gt',
+  gte = 'gte',
+  like = 'like',
+  isNull = 'isNull',
+  isNotNull = 'isNotNull',
+  unaccentLike = 'unaccentLike',
+}

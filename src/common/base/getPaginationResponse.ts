@@ -1,9 +1,9 @@
 import { SelectQueryBuilder } from 'typeorm';
-import { QueryFilter } from '../dtos/queryFilter';
+import { QueryFilterDto } from '../dtos/queryFilter';
 
 export const getPaginationResponse = async (
   builder: SelectQueryBuilder<any>,
-  queryParams: QueryFilter,
+  queryParams: QueryFilterDto,
 ) => {
   const { limit, page, orderBy } = queryParams;
   const offset = (page - 1) * limit;

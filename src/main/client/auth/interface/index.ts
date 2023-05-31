@@ -1,3 +1,4 @@
+import { Role } from '@/db/entities/Role';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 export interface SendCodeVerifyInput {
@@ -27,6 +28,9 @@ export class LoginResponse {
 
   @Field()
   refreshToken: string;
+
+  @Field()
+  role: Role;
 }
 
 @ObjectType({ isAbstract: true })

@@ -17,8 +17,15 @@ export class GetUserQuery {
     return user;
   }
 
-  static async getOneById(userId: string, throwErrorIfNotExists = true) {
-    const user = await User.findOne({ where: { id: userId } });
+  static async getOneById(
+    userId: string,
+    throwErrorIfNotExists = true,
+    relations?: string[],
+  ) {
+    const user = await User.findOne({
+      where: { id: userId },
+      relations: relations,
+    });
 
     if (!user && throwErrorIfNotExists) {
       throw new BadRequestException(messageKey.BASE.ACCOUNT_NOT_EXIST);

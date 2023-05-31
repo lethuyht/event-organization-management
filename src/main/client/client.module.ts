@@ -5,6 +5,8 @@ import { GraphQLError } from 'graphql';
 import { join } from 'path';
 import { UploadModule } from '../shared/upload/upload.module';
 import { AuthClientModule } from './auth/auth.module';
+import { RoleModule } from '../admin/role/role.module';
+import { UserModule } from '../shared/user/user.module';
 
 @Module({
   imports: [
@@ -20,10 +22,12 @@ import { AuthClientModule } from './auth/auth.module';
         };
         return graphQLFormattedError;
       },
-      include: [UploadModule, AuthClientModule],
+      include: [UploadModule, AuthClientModule, RoleModule, UserModule],
     }),
     UploadModule,
     AuthClientModule,
+    RoleModule,
+    UserModule,
   ],
 })
 export class ClientModule {}

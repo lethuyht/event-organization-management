@@ -1,4 +1,4 @@
-import { QueryFilter } from '@/common/dtos/queryFilter';
+import { QueryFilterDto } from '@/common/dtos/queryFilter';
 import { Args, ID, Query, Resolver } from '@nestjs/graphql';
 import { IRole, IRoles } from './interfaces';
 import { RoleService } from './role.service';
@@ -17,7 +17,8 @@ export class RoleResolver {
 
   @Query(() => IRoles, { name: 'getRoles' })
   async getAll(
-    @Args('queryParams', { type: () => QueryFilter }) queryParams: QueryFilter,
+    @Args('queryParams', { type: () => QueryFilterDto })
+    queryParams: QueryFilterDto,
   ) {
     return await this.service.getAll(queryParams);
   }

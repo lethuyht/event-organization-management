@@ -18,6 +18,14 @@ export class User extends CustomBaseEntity {
   @Field(() => ID)
   id: string;
 
+  @Field({ nullable: true })
+  @Column()
+  avatar: string;
+
+  @Field({ nullable: true })
+  @Column()
+  phoneNumber: string;
+
   @Field()
   @Column()
   lastName: string;

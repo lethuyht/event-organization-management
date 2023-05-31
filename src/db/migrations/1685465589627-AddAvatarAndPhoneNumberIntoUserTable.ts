@@ -7,7 +7,7 @@ export class AddAvatarAndPhoneNumberIntoUserTable1685465589627
     await queryRunner.query(`
         ALTER TABLE "user" 
             ADD COLUMN IF NOT EXISTS "avatar" varchar  NULL,
-            ADD COLUMN IF NOT EXISTS "phoneNumber" varchar  NULL;
+            ADD COLUMN IF NOT EXISTS "phone_number" varchar  NULL;
 
     `);
   }

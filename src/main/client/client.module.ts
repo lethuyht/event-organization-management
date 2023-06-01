@@ -7,6 +7,7 @@ import { UploadModule } from '../shared/upload/upload.module';
 import { AuthClientModule } from './auth/auth.module';
 import { RoleModule } from '../admin/role/role.module';
 import { UserModule } from '../shared/user/user.module';
+import { EventModule } from './event/event.module';
 
 @Module({
   imports: [
@@ -22,12 +23,19 @@ import { UserModule } from '../shared/user/user.module';
         };
         return graphQLFormattedError;
       },
-      include: [UploadModule, AuthClientModule, RoleModule, UserModule],
+      include: [
+        UploadModule,
+        AuthClientModule,
+        RoleModule,
+        UserModule,
+        EventModule,
+      ],
     }),
     UploadModule,
     AuthClientModule,
     RoleModule,
     UserModule,
+    EventModule,
   ],
 })
 export class ClientModule {}

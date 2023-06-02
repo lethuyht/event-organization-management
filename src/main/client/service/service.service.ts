@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpsertServiceDto } from './dto';
 import { Service } from '@/db/entities/Service';
 import { messageKey } from '@/i18n';
-import { QueryFilter } from '@/common/dtos/queryFilter';
+import { QueryFilterDto } from '@/common/dtos/queryFilter';
 import { getPaginationResponse } from '@/common/base/getPaginationResponse';
 import { GraphQLResolveInfo } from 'graphql';
 
@@ -34,7 +34,7 @@ export class ServiceService {
     return Service.save(newService);
   }
 
-  getServices(query: QueryFilter) {
+  getServices(query: QueryFilterDto) {
     const builder = Service.createQueryBuilder();
 
     return getPaginationResponse(builder, query);

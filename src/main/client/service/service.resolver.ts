@@ -5,7 +5,7 @@ import { UpsertServiceDto } from './dto';
 import { ServiceService } from './service.service';
 import { Roles } from '@/decorators/roles.decorator';
 import { ROLE } from '@/common/constant';
-import { QueryFilter } from '@/common/dtos/queryFilter';
+import { QueryFilterDto } from '@/common/dtos/queryFilter';
 
 @Auth(['Roles'])
 @Resolver()
@@ -19,7 +19,7 @@ export class ServiceResolver {
   }
 
   @Query(() => IServices)
-  getServices(@Args('query') query: QueryFilter) {
+  getServices(@Args('query') query: QueryFilterDto) {
     return this.service.getServices(query);
   }
 

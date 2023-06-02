@@ -12,6 +12,8 @@
   "DELETED_SUCCESSFULLY": "Deleted successfully.",
   "INVALID_REFRESH_TOKEN": "Refresh token is invalid.",
   "REFRESH_TOKEN_EXPIRE": "Refresh token expired",
+  "CANNOT_FOUND_SERVICE": "Service not found.",
+  "SERVICE_NAME_IS_DUPLICATED": "Service name to be used. Please choose another name.",
   "SHARE_EVENT": {
     "COMMON_ERR_NOT_FOUND": "{0.obj} not found"
   }

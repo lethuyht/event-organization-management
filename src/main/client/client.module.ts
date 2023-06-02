@@ -5,9 +5,10 @@ import { GraphQLError } from 'graphql';
 import { join } from 'path';
 import { UploadModule } from '../shared/upload/upload.module';
 import { AuthClientModule } from './auth/auth.module';
-import { RoleModule } from '../admin/role/role.module';
 import { UserModule } from '../shared/user/user.module';
 import { EventModule } from './event/event.module';
+import { RoleModule } from './role/role.module';
+import { ServiceModule } from './service/service.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { EventModule } from './event/event.module';
         RoleModule,
         UserModule,
         EventModule,
+        ServiceModule,
       ],
     }),
     UploadModule,
@@ -36,6 +38,7 @@ import { EventModule } from './event/event.module';
     RoleModule,
     UserModule,
     EventModule,
+    ServiceModule,
   ],
 })
 export class ClientModule {}

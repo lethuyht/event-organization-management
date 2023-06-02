@@ -9,7 +9,6 @@ import {
 import { messageKey } from '@/i18n';
 import { PasswordUtil } from '@/providers/password';
 import { EXPIRATION_TIME, ROLE } from '@/common/constant';
-import { GetRoleQuery } from '@/main/admin/role/query/getRole.query';
 import { SendCodeVerifyInput } from './interface';
 import dayjs from 'dayjs';
 import {
@@ -25,6 +24,7 @@ import { User } from '@/db/entities/User';
 import { pick } from 'lodash';
 import { Jwt } from '@/service/jwt/jwt';
 import { Token } from '@/db/entities/Token';
+import { GetRoleQuery } from '../role/query/getRole.query';
 
 @Injectable()
 export class AuthClientService {

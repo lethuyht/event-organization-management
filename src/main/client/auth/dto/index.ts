@@ -16,6 +16,9 @@ export class SignUpDto {
 
   @Field()
   password: string;
+
+  @Field()
+  phoneNumber: string;
 }
 
 @InputType()

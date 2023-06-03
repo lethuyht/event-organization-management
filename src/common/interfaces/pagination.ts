@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 @ObjectType({ isAbstract: true })
-class MetaPaginationInterface {
+export class MetaPaginationInterface {
   @Field()
   totalItems: number;
 

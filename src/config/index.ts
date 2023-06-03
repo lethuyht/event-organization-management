@@ -6,6 +6,7 @@ import { APP_ENV } from '../common/constant';
 export const configuration = {
   api: {
     nodeEnv: process.env.APP_ENV || APP_ENV.LOCAL,
+    clientWebsite: process.env.CLIENT_WEBSITE || '',
   },
   connectionString: process.env.DATABASE_URL,
   databaseLocal: process.env.DATABASE_URL || '',

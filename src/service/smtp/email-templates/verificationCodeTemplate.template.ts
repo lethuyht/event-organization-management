@@ -168,7 +168,7 @@ export const verificationCodeTemplate = `<html>
       margin-top: 35px;
       margin-left: 44px;
       ">
-           	Polarisvn
+           	Polaris
           </div>
         </div>
       </div>
@@ -180,13 +180,13 @@ export const verificationCodeTemplate = `<html>
         font-weight: 500;
         margin-top: 0px;
         color:  #c0392b;">{{emailTitle}}</p>
-        <p>Hi <b>{{customerName}}</b></p>
+        <p>Chào <b>{{customerName}}</b></p>
         <div class="content">
-             <p>You have signed up account in our platform. Right ?</p>
-             <p>To completed progress sign up flow, please enter verification code blew: </p>
+             <p>Chào mừng bạn đến với hệ thống sự kiện Polaris.</p>
+             <p>Để hoàn thành đăng kí, vui lòng truy cập <a href="{{verifyLink}}">tại đây</a> và nhập mã xác thực bên dưới.</p>
              <p style="font-size: 26px; color: #FF33FF; text-align: center; font-weight: 400;">{{verifyCode}}</p>
-             <p>If you have any question?</p>
-             <p>Thanks and warm regards</p>
+             <p>Nếu không phải là bạn, vui lòng bỏ qua tin nhắn này.</p>
+             <p>Cảm ơn bạn rất nhiều.</p>
       </div>
     </div>
     

@@ -2,20 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { GetEventQuery } from './query/getEvent.query';
 import { QueryFilterDto } from '@/common/dtos/queryFilter';
 import { Event } from '@/db/entities/Event';
-import { getPaginationResponse } from '@/common/base/getPaginationResponse';
+import {
+  getPaginationResponse,
+  createFilterQueryBuilder,
+} from '@/common/base/getPaginationResponse';
 import { UpsertEventDto } from './dto';
+import { GraphQLResolveInfo } from 'graphql';
+import { getOneBase } from '@/common/base/getOne';
 
 @Injectable()
 export class EventService {
-  async getOne(id: string) {
-    return await GetEventQuery.getOneById(id);
+  async getOne(id: string, info: GraphQLResolveInfo) {
+    return await getOneBase(Event, id, true, info, 'eự kiện');
   }
 
-  async getAll(queryParams: QueryFilterDto) {
-    const builder = Event.createQueryBuilder('Event').where(
-      'Event.isPublic = true',
-    );
-
+  async getAll(queryParams: QueryFilterDto, info: GraphQLResolveInfo) {
+    const builder = createFilterQueryBuilder(Event, queryParams, info);
     return await getPaginationResponse(builder, queryParams);
   }
 

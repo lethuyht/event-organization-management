@@ -10,21 +10,22 @@ import { Context } from '@/decorators/user.decorator';
 import { messageKey } from '@/i18n';
 import { PasswordUtil } from '@/providers/password';
 import { QueryFilterDto } from '@/common/dtos/queryFilter';
-import { getPaginationResponse } from '@/common/base/getPaginationResponse';
+import {
+  getPaginationResponse,
+  createFilterQueryBuilder,
+} from '@/common/base/getPaginationResponse';
 import { GraphQLResolveInfo } from 'graphql';
+import { Info } from '@nestjs/graphql';
+import { getOneBase } from '@/common/base/getOne';
 
 @Injectable()
 export class UserService {
-  async getOne(id: string, info?: GraphQLResolveInfo): Promise<IUser> {
-    const relations = info ? User.getRelations(info) : [];
-    return await GetUserQuery.getOneById(id, true, relations);
+  async getUser(id: string, info?: GraphQLResolveInfo) {
+    return await getOneBase(User, id, true, info, 'người dùng');
   }
 
-  async getAll(queryParams: QueryFilterDto) {
-    const builder = User.createQueryBuilder('User').leftJoinAndSelect(
-      'User.role',
-      'role',
-    );
+  async getAll(queryParams: QueryFilterDto, @Info() info: GraphQLResolveInfo) {
+    const builder = createFilterQueryBuilder(User, queryParams, info);
 
     return await getPaginationResponse(builder, queryParams);
   }

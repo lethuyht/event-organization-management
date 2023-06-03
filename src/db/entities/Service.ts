@@ -3,6 +3,8 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ServiceItem } from './ServiceItem';
+import { GraphQLResolveInfo } from 'graphql';
+import { getJoinRelation } from '@/providers/selectionUtils';
 
 export enum ServiceType {
   Device = 'Device',
@@ -16,9 +18,9 @@ export class Service extends CustomBaseEntity {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Field(() => GraphQLJSON)
-  @Column('text', { array: true, default: [] })
-  images: JSON;
+  @Field(() => [String])
+  @Column({ type: 'text', array: true, nullable: true, default: [] })
+  images: string[];
 
   @Field()
   @Column()
@@ -37,4 +39,14 @@ export class Service extends CustomBaseEntity {
     cascade: true,
   })
   serviceItems: ServiceItem[];
+
+  static getRelations(
+    info: GraphQLResolveInfo,
+    withPagination?: boolean,
+    forceInclude?: string[],
+  ): string[] {
+    const fields = [['serviceItems']];
+
+    return getJoinRelation(info, fields, withPagination, forceInclude);
+  }
 }

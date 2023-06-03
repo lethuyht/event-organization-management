@@ -1,4 +1,23 @@
+import { EXPIRATION_TIME, ROLE } from '@/common/constant';
+import { configuration } from '@/config';
+import { Token } from '@/db/entities/Token';
+import { User } from '@/db/entities/User';
+import {
+  UserVerificationRequest,
+  UserVerificationRequestType,
+} from '@/db/entities/UserVerificationRequest';
+import { messageKey } from '@/i18n';
+import { GetUserQuery } from '@/main/shared/user/query/getUser.query';
+import { GetUserVerificationRequestQuery } from '@/main/shared/userVerificationRequest/query/getUserVerificationRequest.query';
+import { randomCode } from '@/providers/functionUtils';
+import { PasswordUtil } from '@/providers/password';
+import { Jwt } from '@/service/jwt/jwt';
+import { emailService } from '@/service/smtp/service';
 import { BadRequestException, Injectable } from '@nestjs/common';
+import dayjs from 'dayjs';
+import { pick } from 'lodash';
+import { EntityManager, getManager } from 'typeorm';
+import { GetRoleQuery } from '../role/query/getRole.query';
 import {
   CodeVerifyDto,
   RefreshTokenDto,
@@ -6,25 +25,7 @@ import {
   SignOutDto,
   SignUpDto,
 } from './dto';
-import { messageKey } from '@/i18n';
-import { PasswordUtil } from '@/providers/password';
-import { EXPIRATION_TIME, ROLE } from '@/common/constant';
 import { SendCodeVerifyInput } from './interface';
-import dayjs from 'dayjs';
-import {
-  UserVerificationRequest,
-  UserVerificationRequestType,
-} from '@/db/entities/UserVerificationRequest';
-import { EntityManager, getManager } from 'typeorm';
-import { randomCode } from '@/providers/functionUtils';
-import { emailService } from '@/service/smtp/service';
-import { GetUserVerificationRequestQuery } from '@/main/shared/userVerificationRequest/query/getUserVerificationRequest.query';
-import { GetUserQuery } from '@/main/shared/user/query/getUser.query';
-import { User } from '@/db/entities/User';
-import { pick } from 'lodash';
-import { Jwt } from '@/service/jwt/jwt';
-import { Token } from '@/db/entities/Token';
-import { GetRoleQuery } from '../role/query/getRole.query';
 
 @Injectable()
 export class AuthClientService {
@@ -87,6 +88,9 @@ export class AuthClientService {
       receiverEmail: email,
       customerName: `${input.firstName} ${input.lastName}`,
       verifyCode: code,
+      verifyLink: `${
+        configuration.api.clientWebsite
+      }/verify-code?email=${encodeURIComponent(input.email)}`,
     });
 
     return {

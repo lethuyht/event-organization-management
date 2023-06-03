@@ -5,7 +5,7 @@ export class CreateServiceTable1685376648367 implements MigrationInterface {
     await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS "service"(
                 "id"            uuid            NOT NULL    DEFAULT uuid_generate_v4(),
-                "images"        text[]         NOT NULL,
+                "images"        text[]          NOT NULL,
                 "name"          varchar(255)    NOT NULL,
                 "description"   varchar,
                 "type"          varchar(255),

@@ -10,6 +10,8 @@ import { Role } from './Role';
 
 import { CustomBaseEntity } from '@/common/base/baseEntity';
 import { Exclude, classToPlain } from 'class-transformer';
+import { GraphQLResolveInfo } from 'graphql';
+import { getJoinRelation } from '@/providers/selectionUtils';
 
 @ObjectType({ isAbstract: true })
 @Entity('user')
@@ -54,5 +56,15 @@ export class User extends CustomBaseEntity {
 
   toPublic() {
     return classToPlain(this);
+  }
+
+  static getRelations(
+    info: GraphQLResolveInfo,
+    withPagination?: boolean,
+    forceInclude?: string[],
+  ): string[] {
+    const fields = [['role']];
+
+    return getJoinRelation(info, fields, withPagination, forceInclude);
   }
 }

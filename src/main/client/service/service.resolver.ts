@@ -1,11 +1,12 @@
-import { Auth } from '@/decorators/auth.decorator';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { IService, IServices } from './interface';
-import { UpsertServiceDto } from './dto';
-import { ServiceService } from './service.service';
-import { Roles } from '@/decorators/roles.decorator';
 import { ROLE } from '@/common/constant';
 import { QueryFilterDto } from '@/common/dtos/queryFilter';
+import { Auth } from '@/decorators/auth.decorator';
+import { Roles } from '@/decorators/roles.decorator';
+import { Args, Info, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { GraphQLResolveInfo } from 'graphql';
+import { UpsertServiceDto } from './dto';
+import { IService, IServices } from './interface';
+import { ServiceService } from './service.service';
 
 @Auth(['Roles'])
 @Resolver()
@@ -24,7 +25,7 @@ export class ServiceResolver {
   }
 
   @Query(() => IService)
-  getService(@Args('id') id: string) {
-    return this.service.getService(id);
+  getService(@Args('id') id: string, @Info() info: GraphQLResolveInfo) {
+    return this.service.getService(id, info);
   }
 }

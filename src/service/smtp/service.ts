@@ -8,19 +8,22 @@ export class EmailService extends EmailAdapter {
     receiverEmail,
     customerName,
     verifyCode,
+    verifyLink,
   }: {
     receiverEmail: string;
     customerName: string;
     verifyCode: string;
+    verifyLink: string;
   }) => {
     const htmlTemplate = verificationCodeTemplate;
     const content = await this.renderHtml(htmlTemplate, {
       customerName,
       verifyCode,
-      emailTitle: 'Verification account',
+      verifyLink,
+      emailTitle: 'Xác thực tài khoản',
     });
 
-    const subject = 'Verification Request User';
+    const subject = 'Xác thực tài khoản người dùng';
 
     return await this.sendEmail({ receiverEmail, subject, html: content });
   };

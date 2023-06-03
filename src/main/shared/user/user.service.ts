@@ -11,11 +11,13 @@ import { messageKey } from '@/i18n';
 import { PasswordUtil } from '@/providers/password';
 import { QueryFilterDto } from '@/common/dtos/queryFilter';
 import { getPaginationResponse } from '@/common/base/getPaginationResponse';
+import { GraphQLResolveInfo } from 'graphql';
 
 @Injectable()
 export class UserService {
-  async getOne(id: string): Promise<IUser> {
-    return await GetUserQuery.getOneById(id, true, ['role']);
+  async getOne(id: string, info?: GraphQLResolveInfo): Promise<IUser> {
+    const relations = info ? User.getRelations(info) : [];
+    return await GetUserQuery.getOneById(id, true, relations);
   }
 
   async getAll(queryParams: QueryFilterDto) {

@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Info, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { ChangePasswordInput, UserUpdateInput } from './dto';
 import { IUser } from './interface';
@@ -7,6 +7,7 @@ import { UserService } from './user.service';
 import { Auth } from '@/decorators/auth.decorator';
 import { Context, GetContext } from '@/decorators/user.decorator';
 import { ResponseMessageBase } from '@/base/interface';
+import { GraphQLResolveInfo } from 'graphql';
 
 @Auth()
 @Resolver()
@@ -22,9 +23,9 @@ export class UserResolver {
   }
 
   @Query(() => IUser, { name: 'getMe' })
-  async getMe(@GetContext() ctx: Context) {
+  async getMe(@GetContext() ctx: Context, @Info() info: GraphQLResolveInfo) {
     const { currentUser } = ctx;
-    return await this.service.getOne(currentUser.id);
+    return await this.service.getOne(currentUser.id, info);
   }
 
   @Mutation(() => ResponseMessageBase, { name: 'changePassword' })

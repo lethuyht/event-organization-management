@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpsertServiceDto } from './dto';
 import { Service } from '@/db/entities/Service';
 import { messageKey } from '@/i18n';
@@ -18,13 +22,8 @@ export class ServiceService {
       throw new BadRequestException(messageKey.BASE.SERVICE_NAME_IS_DUPLICATED);
     }
 
-    const images = JSON.stringify(input.images)
-      .replace('[', '{')
-      .replace(']', '}') as unknown as JSON;
-
     const newService = Service.merge(service ?? Service.create(), {
       ...input,
-      images,
     });
 
     if (input.serviceItems) {
@@ -40,7 +39,20 @@ export class ServiceService {
     return getPaginationResponse(builder, query);
   }
 
-  getService(id: string) {
-    return Service.findOne({ id }, { relations: ['serviceItems'] });
+  async getService(id: string, info?: GraphQLResolveInfo) {
+    const relations = info ? Service.getRelations(info) : [];
+
+    const service = await Service.findOne({
+      where: {
+        id,
+      },
+      relations,
+    });
+
+    if (!service) {
+      throw new NotFoundException('Không tìm thấy dịch vụ.');
+    }
+
+    return service;
   }
 }

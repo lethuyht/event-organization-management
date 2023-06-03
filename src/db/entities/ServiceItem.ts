@@ -8,6 +8,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Service } from './Service';
+import { GraphQLResolveInfo } from 'graphql';
+import { getJoinRelation } from '@/providers/selectionUtils';
 
 @ObjectType({ isAbstract: true })
 @Entity('service_item')
@@ -43,4 +45,14 @@ export class ServiceItem extends CustomBaseEntity {
   })
   @JoinColumn({ name: 'service_id' })
   service: Service;
+
+  static getRelations(
+    info: GraphQLResolveInfo,
+    withPagination?: boolean,
+    forceInclude?: string[],
+  ): string[] {
+    const fields = [['service']];
+
+    return getJoinRelation(info, fields, withPagination, forceInclude);
+  }
 }

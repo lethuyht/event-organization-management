@@ -26,6 +26,7 @@ import {
   SignUpDto,
 } from './dto';
 import { SendCodeVerifyInput } from './interface';
+import { Cart } from '@/db/entities/Cart';
 
 @Injectable()
 export class AuthClientService {
@@ -118,6 +119,10 @@ export class AuthClientService {
     user = User.create({ ...data, password: data.password });
 
     await User.save(user);
+
+    const cart = Cart.create({ userId: user.id });
+    await Cart.save(cart);
+
     user = await GetUserQuery.getOneByEmail(email, true, ['role']);
     return await this.generateUserWithAccessToken(user);
   }
@@ -163,16 +168,22 @@ export class AuthClientService {
       email,
     };
 
-    const user = <User>await User.findOneOrFail({
+    const user = <User>await User.findOne({
       where,
-      relations: ['role'],
-    }).catch(() => {
+      relations: ['role', 'cart'],
+    });
+
+    if (!user) {
       throw new BadRequestException(
         messageKey.BASE.INCORRECT_EMAIL_OR_PASSWORD,
       );
-    });
+    }
 
     await PasswordUtil.validateHash(password, user.password, true);
+
+    if (!user.cart) {
+      await Cart.save(Cart.create({ userId: user.id }));
+    }
 
     return await getManager().transaction(
       async (transaction) =>

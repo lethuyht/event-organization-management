@@ -13,7 +13,7 @@ import { getOneBase } from '@/common/base/getOne';
 @Injectable()
 export class EventService {
   async getOne(id: string, info: GraphQLResolveInfo) {
-    return await getOneBase(Event, id, true, info, 'eự kiện');
+    return await getOneBase(Event, id, true, info, 'sự kiện');
   }
 
   async getAll(queryParams: QueryFilterDto, info: GraphQLResolveInfo) {

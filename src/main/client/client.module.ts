@@ -10,6 +10,7 @@ import { EventModule } from './event/event.module';
 import { RoleModule } from './role/role.module';
 import { ServiceModule } from './service/service.module';
 import { CartModule } from './cart/cart.module';
+import { EventRequestModule } from './eventRequest/eventRequest.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { CartModule } from './cart/cart.module';
         EventModule,
         ServiceModule,
         CartModule,
+        EventRequestModule,
       ],
     }),
     UploadModule,
@@ -42,6 +44,7 @@ import { CartModule } from './cart/cart.module';
     EventModule,
     ServiceModule,
     CartModule,
+    EventRequestModule,
   ],
 })
 export class ClientModule {}

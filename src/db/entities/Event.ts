@@ -15,9 +15,13 @@ export class Event extends CustomBaseEntity {
   @Column()
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   description: string;
+
+  @Field()
+  @Column()
+  detail: string;
 
   @Field(() => Boolean, { defaultValue: false })
   @Column({ default: false, type: 'boolean' })

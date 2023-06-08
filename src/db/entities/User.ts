@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Role } from './Role';
@@ -12,6 +13,7 @@ import { CustomBaseEntity } from '@/common/base/baseEntity';
 import { Exclude, classToPlain } from 'class-transformer';
 import { GraphQLResolveInfo } from 'graphql';
 import { getJoinRelation } from '@/providers/selectionUtils';
+import { Cart } from './Cart';
 
 @ObjectType({ isAbstract: true })
 @Entity('user')
@@ -53,6 +55,10 @@ export class User extends CustomBaseEntity {
   @ManyToOne(() => Role)
   @JoinColumn({ name: 'role_id' })
   role: Role;
+
+  @Field(() => Cart, { nullable: true })
+  @OneToOne(() => Cart, (cart) => cart.user)
+  cart: Cart;
 
   toPublic() {
     return classToPlain(this);

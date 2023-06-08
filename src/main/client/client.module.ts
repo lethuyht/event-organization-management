@@ -9,6 +9,7 @@ import { UserModule } from '../shared/user/user.module';
 import { EventModule } from './event/event.module';
 import { RoleModule } from './role/role.module';
 import { ServiceModule } from './service/service.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ServiceModule } from './service/service.module';
         UserModule,
         EventModule,
         ServiceModule,
+        CartModule,
       ],
     }),
     UploadModule,
@@ -39,6 +41,7 @@ import { ServiceModule } from './service/service.module';
     UserModule,
     EventModule,
     ServiceModule,
+    CartModule,
   ],
 })
 export class ClientModule {}

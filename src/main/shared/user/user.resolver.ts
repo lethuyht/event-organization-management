@@ -25,7 +25,7 @@ export class UserResolver {
   @Query(() => IUser, { name: 'getMe' })
   async getMe(@GetContext() ctx: Context, @Info() info: GraphQLResolveInfo) {
     const { currentUser } = ctx;
-    return await this.service.getOne(currentUser.id, info);
+    return await this.service.getUser(currentUser.id, info);
   }
 
   @Mutation(() => ResponseMessageBase, { name: 'changePassword' })

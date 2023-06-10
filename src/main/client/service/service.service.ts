@@ -1,14 +1,14 @@
+import { getOneBase } from '@/common/base/getOne';
 import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { UpsertServiceDto } from './dto';
+  getPaginationResponse,
+  createFilterQueryBuilder,
+} from '@/common/base/getPaginationResponse';
+import { QueryFilterDto } from '@/common/dtos/queryFilter';
 import { Service } from '@/db/entities/Service';
 import { messageKey } from '@/i18n';
-import { QueryFilterDto } from '@/common/dtos/queryFilter';
-import { getPaginationResponse } from '@/common/base/getPaginationResponse';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { GraphQLResolveInfo } from 'graphql';
+import { UpsertServiceDto } from './dto';
 
 @Injectable()
 export class ServiceService {
@@ -33,26 +33,13 @@ export class ServiceService {
     return Service.save(newService);
   }
 
-  getServices(query: QueryFilterDto) {
-    const builder = Service.createQueryBuilder();
+  getServices(query: QueryFilterDto, info: GraphQLResolveInfo) {
+    const builder = createFilterQueryBuilder(Service, query, info);
 
     return getPaginationResponse(builder, query);
   }
 
   async getService(id: string, info?: GraphQLResolveInfo) {
-    const relations = info ? Service.getRelations(info) : [];
-
-    const service = await Service.findOne({
-      where: {
-        id,
-      },
-      relations,
-    });
-
-    if (!service) {
-      throw new NotFoundException('Không tìm thấy dịch vụ.');
-    }
-
-    return service;
+    return await getOneBase(Service, id, true, info, 'dịch vụ');
   }
 }

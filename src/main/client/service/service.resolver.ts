@@ -8,20 +8,23 @@ import { UpsertServiceDto } from './dto';
 import { IService, IServices } from './interface';
 import { ServiceService } from './service.service';
 
-@Auth(['Roles'])
 @Resolver()
 export class ServiceResolver {
   constructor(private service: ServiceService) {}
 
   @Roles(ROLE.Admin)
+  @Auth(['Roles'])
   @Mutation(() => IService, { name: 'upsertService' })
   upsertService(@Args('input') input: UpsertServiceDto) {
     return this.service.upsertService(input);
   }
 
   @Query(() => IServices)
-  getServices(@Args('query') query: QueryFilterDto) {
-    return this.service.getServices(query);
+  getServices(
+    @Args('query') query: QueryFilterDto,
+    @Info() info: GraphQLResolveInfo,
+  ) {
+    return this.service.getServices(query, info);
   }
 
   @Query(() => IService)

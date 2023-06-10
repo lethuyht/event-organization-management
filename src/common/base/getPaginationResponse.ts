@@ -1,21 +1,25 @@
-import { Brackets, SelectQueryBuilder } from 'typeorm';
+import {
+  BaseEntity,
+  Brackets,
+  SelectQueryBuilder,
+  getRepository,
+} from 'typeorm';
 import { FilterDto, QueryFilterDto } from '../dtos/queryFilter';
 import { BadRequestException } from '@nestjs/common';
-import _, { isBoolean, isEmpty, isNumber } from 'lodash';
+import _, { forEach, isBoolean, isEmpty, isNumber } from 'lodash';
+import { capitalizeFirstLetter } from '@/providers/words';
+import { CustomBaseEntity } from './baseEntity';
+import { GraphQLResolveInfo } from 'graphql';
 
 export const getPaginationResponse = async (
   builder: SelectQueryBuilder<any>,
   queryParams: QueryFilterDto,
 ) => {
-  const { limit, page, orderBy, filters } = queryParams;
+  const { limit, page, orderBy } = queryParams;
   const offset = (page - 1) * limit;
 
   if (orderBy) {
     addOrderByQuery(builder, orderBy);
-  }
-
-  if (filters) {
-    builder = filterBuilder(builder, filters);
   }
 
   builder.skip(offset).take(limit);
@@ -165,13 +169,64 @@ export const filterBuilder = (
         const key = `like${index}`;
         builder.andWhere(
           new Brackets((qb) => {
-            qb.where(`"${getNamingTableName}"."${field}" ilike :${key}`, {
-              [key]: `%${data}%`,
-            });
+            qb.where(
+              `unaccent("${getNamingTableName}"."${field}") ilike unaccent(:${key})`,
+              {
+                [key]: `%${data}%`,
+              },
+            );
           }),
         );
       }
     });
+  }
+
+  return builder;
+};
+
+const joinBuilder = (
+  tableAlias: string,
+  queryBuilder: SelectQueryBuilder<any>,
+  relations: string[],
+): any => {
+  forEach(relations, (expression) => {
+    if (expression && expression.split('.').length > 1) {
+      //Expression: sender.country
+      //EntityName: Country
+      //Alias: Sender.Country => for filter ex: Sender.Country.name, Receiver.Country.name, ....
+      const entityName = capitalizeFirstLetter(expression.split('.')[1]);
+      const alias = `${capitalizeFirstLetter(
+        expression.split('.')[0],
+      )}.${entityName}`;
+      expression = capitalizeFirstLetter(expression);
+      queryBuilder.leftJoinAndSelect(expression, alias);
+    } else {
+      const entityName = capitalizeFirstLetter(expression);
+      queryBuilder.leftJoinAndSelect(
+        `${tableAlias}.${expression}`,
+        capitalizeFirstLetter(entityName),
+      );
+      expression = capitalizeFirstLetter(expression);
+    }
+  });
+  return queryBuilder;
+};
+
+export const createFilterQueryBuilder = (
+  entity: typeof CustomBaseEntity,
+  queryParams: QueryFilterDto,
+  info?: GraphQLResolveInfo,
+): SelectQueryBuilder<any> => {
+  const relations = info ? entity.getRelations(info, true) : [];
+
+  const builder = getRepository(entity).createQueryBuilder(entity.name) as any;
+
+  if (relations?.length) {
+    joinBuilder(entity.name, builder, relations);
+  }
+
+  if (queryParams.filters) {
+    filterBuilder(builder, queryParams.filters);
   }
 
   return builder;

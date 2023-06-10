@@ -10,7 +10,6 @@ import { EventModule } from './event/event.module';
 import { RoleModule } from './role/role.module';
 import { ServiceModule } from './service/service.module';
 import { CartModule } from './cart/cart.module';
-import { ContractModule } from './contract/contract.module';
 import { EventRequestModule } from './eventRequest/eventRequest.module';
 
 @Module({
@@ -35,7 +34,6 @@ import { EventRequestModule } from './eventRequest/eventRequest.module';
         EventModule,
         ServiceModule,
         CartModule,
-        ContractModule,
         EventRequestModule,
       ],
     }),
@@ -46,7 +44,6 @@ import { EventRequestModule } from './eventRequest/eventRequest.module';
     EventModule,
     ServiceModule,
     CartModule,
-    ContractModule,
     EventRequestModule,
   ],
 })

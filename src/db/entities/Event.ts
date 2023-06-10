@@ -17,6 +17,10 @@ export class Event extends CustomBaseEntity {
 
   @Field({ nullable: true })
   @Column()
+  thumbnail: string;
+
+  @Field()
+  @Column()
   description: string;
 
   @Field()

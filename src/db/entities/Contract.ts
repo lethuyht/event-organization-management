@@ -11,6 +11,8 @@ import {
 } from 'typeorm';
 import { User } from './User';
 import { ContractServiceItem } from './ContractServiceItem';
+import { GraphQLResolveInfo } from 'graphql';
+import { getJoinRelation } from '@/providers/selectionUtils';
 
 export enum CONTRACT_TYPE {
   Event = 'Event',
@@ -84,4 +86,17 @@ export class Contract extends CustomBaseEntity {
     { cascade: true },
   )
   contractServiceItems: ContractServiceItem[];
+
+  static getRelations(
+    info: GraphQLResolveInfo,
+    withPagination?: boolean,
+    forceInclude?: string[],
+  ): string[] {
+    const fields = [
+      ['user'],
+      ['contractServiceItems'],
+      ['contractServiceItems', 'serviceItem'],
+    ];
+    return getJoinRelation(info, fields, withPagination, forceInclude);
+  }
 }

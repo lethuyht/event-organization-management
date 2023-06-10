@@ -17,6 +17,14 @@ export class UpsertEventDto {
   @IsOptional()
   description: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  detail: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  thumbnail: string;
+
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
   @IsBoolean()

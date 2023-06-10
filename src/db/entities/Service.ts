@@ -1,10 +1,9 @@
 import { CustomBaseEntity } from '@/common/base/baseEntity';
+import { getJoinRelation } from '@/providers/selectionUtils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import GraphQLJSON from 'graphql-type-json';
+import { GraphQLResolveInfo } from 'graphql';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ServiceItem } from './ServiceItem';
-import { GraphQLResolveInfo } from 'graphql';
-import { getJoinRelation } from '@/providers/selectionUtils';
 
 export enum ServiceType {
   Device = 'Device',

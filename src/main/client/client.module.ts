@@ -11,6 +11,7 @@ import { RoleModule } from './role/role.module';
 import { ServiceModule } from './service/service.module';
 import { CartModule } from './cart/cart.module';
 import { ContractModule } from './contract/contract.module';
+import { EventRequestModule } from './eventRequest/eventRequest.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ContractModule } from './contract/contract.module';
         ServiceModule,
         CartModule,
         ContractModule,
+        EventRequestModule,
       ],
     }),
     UploadModule,
@@ -45,6 +47,7 @@ import { ContractModule } from './contract/contract.module';
     ServiceModule,
     CartModule,
     ContractModule,
+    EventRequestModule,
   ],
 })
 export class ClientModule {}

@@ -24,6 +24,11 @@ export class RolesGuard implements CanActivate {
       req: { user },
     } = ctx.getContext();
 
+    console.log(
+      '🚀 ~ file: roles.guard.ts:25 ~ RolesGuard ~ canActivate ~ user:',
+      user,
+    );
+
     return requiredRoles.some((role) => user.role.name === role);
   }
 }

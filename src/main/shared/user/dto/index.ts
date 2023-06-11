@@ -29,3 +29,21 @@ export class ChangePasswordInput {
   @Field()
   newPassword: string;
 }
+
+@InputType()
+export class CustomerInfoDto {
+  @Field()
+  type: 'company' | 'person';
+
+  @Field()
+  name: string;
+
+  @Field()
+  address: string;
+
+  @Field({ nullable: true })
+  representative: string;
+
+  @Field()
+  phoneNumber: string;
+}

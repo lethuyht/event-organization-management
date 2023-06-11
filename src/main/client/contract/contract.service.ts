@@ -47,7 +47,16 @@ export class ContractService {
   }
 
   async requestCreateContract(input: RequestContractDto, user: User) {
-    const { cartItemIds } = input;
+    const { cartItemIds, details: detailInput } = input;
+
+    if (
+      detailInput?.customerInfo?.type === 'company' &&
+      !detailInput?.customerInfo?.representative
+    ) {
+      throw new BadRequestException(
+        'Bạn phải nhập người đại diện của công ty nếu muốn tạo hợp đồng đối với doanh nghiệp',
+      );
+    }
 
     const cartItems = await CartItem.createQueryBuilder()
       .leftJoinAndSelect('CartItem.serviceItem', 'ServiceItem')
@@ -102,7 +111,9 @@ export class ContractService {
       contractServiceItems.push({ serviceItemId: index, amount: totalAmount });
     }
 
-    const details = { name: 'Oke' } as unknown as JSON;
+    const details = detailInput as unknown as JSON;
+
+    //create contract pdf => upload it to s3 and save url into file_url
 
     const contract = Contract.create({
       userId: user.id,
@@ -115,6 +126,8 @@ export class ContractService {
       status: CONTRACT_STATUS.Draft,
       contractServiceItems,
     });
+
+    //delete all cart item contains cartItemIds, which is passed from params input
 
     return await Contract.save(contract);
   }

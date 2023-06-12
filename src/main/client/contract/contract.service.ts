@@ -20,6 +20,8 @@ import _ from 'lodash';
 import { ValidateCartItem } from '../cart/command/validateCartItem.command';
 import dayjs from 'dayjs';
 import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
+import { ContractTemplate } from '@/main/shared/contract/contract.template';
+import * as Handlebars from 'handlebars';
 
 @Injectable()
 export class ContractService {
@@ -113,7 +115,8 @@ export class ContractService {
 
     const details = detailInput as unknown as JSON;
 
-    //create contract pdf => upload it to s3 and save url into file_url
+    // const contractData;
+    // const contractTemplate = Handlebars.compile(ContractTemplate)(contractData);
 
     const contract = Contract.create({
       userId: user.id,
@@ -127,7 +130,10 @@ export class ContractService {
       contractServiceItems,
     });
 
-    //delete all cart item contains cartItemIds, which is passed from params input
+    await CartItem.createQueryBuilder()
+      .delete()
+      .whereInIds(cartItemIds)
+      .execute();
 
     return await Contract.save(contract);
   }

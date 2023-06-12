@@ -25,6 +25,8 @@ export enum CONTRACT_STATUS {
   InProgress = 'In_progress',
   WaitingPaid = 'Waiting_paid',
   Completed = 'Completed',
+  Cancel = 'Cancel',
+  AdminCancel = 'Admin_cancel',
 }
 
 @ObjectType({ isAbstract: true })

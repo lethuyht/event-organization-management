@@ -38,6 +38,10 @@ export class ServiceItem extends CustomBaseEntity {
   @Column()
   serviceId: string;
 
+  @Field(() => Boolean)
+  @Column()
+  isPublished: boolean;
+
   @Field(() => Service)
   @ManyToOne(() => Service, {
     onDelete: 'CASCADE',

@@ -33,6 +33,10 @@ export class Service extends CustomBaseEntity {
   @Column({ type: 'enum', enum: ServiceType })
   type: ServiceType;
 
+  @Field(() => Boolean)
+  @Column()
+  isPublished: boolean;
+
   @Field(() => [ServiceItem], { nullable: true })
   @OneToMany(() => ServiceItem, (serviceItem) => serviceItem.service, {
     cascade: true,

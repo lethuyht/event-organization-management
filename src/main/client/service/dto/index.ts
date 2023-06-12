@@ -50,3 +50,26 @@ export class UpsertServiceItemDto {
   @IsInt()
   totalQuantity: number;
 }
+
+@InputType()
+export class PublishServiceItemDto {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => Boolean, { defaultValue: true })
+  isPublished: boolean;
+}
+
+@InputType()
+export class PublishServiceDto {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => Boolean, { defaultValue: true })
+  isPublished: boolean;
+
+  @Field(() => [PublishServiceItemDto])
+  @ValidateNested({ each: true })
+  @Type(() => PublishServiceDto)
+  serviceItems: ServiceItem[];
+}

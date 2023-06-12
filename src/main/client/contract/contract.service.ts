@@ -20,6 +20,8 @@ import _ from 'lodash';
 import { ValidateCartItem } from '../cart/command/validateCartItem.command';
 import dayjs from 'dayjs';
 import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
+import { ContractTemplate } from '@/main/shared/contract/contract.template';
+import * as Handlebars from 'handlebars';
 
 @Injectable()
 export class ContractService {
@@ -47,7 +49,16 @@ export class ContractService {
   }
 
   async requestCreateContract(input: RequestContractDto, user: User) {
-    const { cartItemIds } = input;
+    const { cartItemIds, details: detailInput } = input;
+
+    if (
+      detailInput?.customerInfo?.type === 'company' &&
+      !detailInput?.customerInfo?.representative
+    ) {
+      throw new BadRequestException(
+        'Bạn phải nhập người đại diện của công ty nếu muốn tạo hợp đồng đối với doanh nghiệp',
+      );
+    }
 
     const cartItems = await CartItem.createQueryBuilder()
       .leftJoinAndSelect('CartItem.serviceItem', 'ServiceItem')
@@ -102,7 +113,10 @@ export class ContractService {
       contractServiceItems.push({ serviceItemId: index, amount: totalAmount });
     }
 
-    const details = { name: 'Oke' } as unknown as JSON;
+    const details = detailInput as unknown as JSON;
+
+    // const contractData;
+    // const contractTemplate = Handlebars.compile(ContractTemplate)(contractData);
 
     const contract = Contract.create({
       userId: user.id,
@@ -115,6 +129,11 @@ export class ContractService {
       status: CONTRACT_STATUS.Draft,
       contractServiceItems,
     });
+
+    await CartItem.createQueryBuilder()
+      .delete()
+      .whereInIds(cartItemIds)
+      .execute();
 
     return await Contract.save(contract);
   }

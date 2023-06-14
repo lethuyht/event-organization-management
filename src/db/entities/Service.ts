@@ -7,7 +7,7 @@ import { ServiceItem } from './ServiceItem';
 
 export enum ServiceType {
   Device = 'Device',
-  HumanResource = 'Human_Resource',
+  HumanResource = 'HumanResource',
 }
 
 @ObjectType({ isAbstract: true })

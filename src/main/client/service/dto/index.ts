@@ -14,22 +14,23 @@ import {
 @InputType()
 export class UpsertServiceDto {
   @Field(() => ID, { nullable: true })
+  @IsOptional()
   @Validate(EntityExistingValidator, ['service'])
   id: string;
 
-  @Field(() => [String])
+  @Field(() => [String], { nullable: true })
   images: string[];
 
-  @Field()
+  @Field({ nullable: true })
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   description: string;
 
-  @Field()
+  @Field({ nullable: true })
   detail: string;
 
-  @Field(() => ServiceType)
+  @Field(() => ServiceType, { nullable: true })
   type: ServiceType;
 
   @Field(() => [UpsertServiceItemDto], { nullable: true })
@@ -50,13 +51,13 @@ export class UpsertServiceItemDto {
   @Validate(EntityExistingValidator, ['service_item'])
   id: string;
 
-  @Field()
+  @Field({ nullable: true })
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   description: string;
 
-  @Field(() => Float)
+  @Field(() => Float, { nullable: true })
   price: number;
 
   @Field({ nullable: true })

@@ -20,7 +20,11 @@ import _ from 'lodash';
 import { ValidateCartItem } from '../cart/command/validateCartItem.command';
 import dayjs from 'dayjs';
 import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
-import { uploadFileToS3 } from '@/providers/functionUtils';
+import { ContractTemplate } from '@/main/shared/contract/contract.template';
+import * as Handlebars from 'handlebars';
+import { Browser, Page } from 'puppeteer';
+import { launchBrowser, uploadFileToS3 } from '@/providers/functionUtils';
+import locateChrome from 'locate-chrome';
 
 @Injectable()
 export class ContractService {
@@ -48,6 +52,9 @@ export class ContractService {
   }
 
   async requestCreateContract(input: RequestContractDto, user: User) {
+    let browser: Browser;
+    let page: Page;
+
     const { cartItemIds, details: detailInput } = input;
 
     if (
@@ -125,26 +132,34 @@ export class ContractService {
       contractServiceItems,
     });
 
-    await CartItem.createQueryBuilder()
-      .delete()
-      .whereInIds(cartItemIds)
-      .execute();
+    // await CartItem.createQueryBuilder()
+    //   .delete()
+    //   .whereInIds(cartItemIds)
+    //   .execute();
 
     await Contract.save(contract);
 
-    return contract;
-  }
-
-  async uploadContract(input: Buffer, contractId: string) {
-    const contract = await Contract.findOne({ id: contractId });
-
-    if (!contract) {
-      throw new BadRequestException('Không tìm thấy hợp đồng!');
-    }
-
     try {
+      const executablePath = await new Promise((resolve) =>
+        locateChrome((arg) => resolve(arg)),
+      );
+
+      browser = await launchBrowser(executablePath);
+
+      const contractData = {};
+      const contractTemplate =
+        Handlebars.compile(ContractTemplate)(contractData);
+      page = await browser.newPage();
+
+      await page.setContent(contractTemplate, { waitUntil: ['load'] });
+
+      const file = await page.pdf({
+        format: 'a0',
+        printBackground: true,
+      });
+
       const response = (await uploadFileToS3({
-        data: input,
+        data: file,
         pathType: `Public/Contracts/${contract.userId}`,
         fileName: `${contract.id}-${dayjs().format('YYYY-MM-DD')}.pdf`,
         fileType: 'application/pdf',
@@ -152,9 +167,14 @@ export class ContractService {
 
       contract.fileUrl = response.Location;
       await Contract.save(contract);
-      return response.Location;
+
+      await browser.close();
     } catch (error) {
-      console.log(error);
+      if (error instanceof Error) {
+        return error;
+      }
     }
+
+    return contract;
   }
 }

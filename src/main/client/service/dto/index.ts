@@ -3,7 +3,13 @@ import { ServiceItem } from '@/db/entities/ServiceItem';
 import { EntityExistingValidator } from '@/decorators/entityExistingValidator.decorator';
 import { Field, Float, ID, InputType } from '@nestjs/graphql';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Validate, ValidateNested } from 'class-validator';
+import {
+  IsInt,
+  IsOptional,
+  Validate,
+  ValidateNested,
+  IsBoolean,
+} from 'class-validator';
 
 @InputType()
 export class UpsertServiceDto {
@@ -30,6 +36,11 @@ export class UpsertServiceDto {
   @ValidateNested({ each: true })
   @Type(() => UpsertServiceItemDto)
   serviceItems: ServiceItem[];
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isPublished: boolean;
 }
 
 @InputType()
@@ -52,6 +63,11 @@ export class UpsertServiceItemDto {
   @IsOptional()
   @IsInt()
   totalQuantity: number;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isPublished: boolean;
 }
 
 @InputType()

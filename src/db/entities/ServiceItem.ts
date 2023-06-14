@@ -22,15 +22,15 @@ export class ServiceItem extends CustomBaseEntity {
   @Column()
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   description: string;
 
-  @Field(() => Float)
+  @Field(() => Float, { nullable: true })
   @Column()
   price: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   totalQuantity: number;
 

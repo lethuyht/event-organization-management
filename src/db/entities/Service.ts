@@ -17,7 +17,7 @@ export class Service extends CustomBaseEntity {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Field(() => [String])
+  @Field(() => [String], { nullable: true })
   @Column({ type: 'text', array: true, nullable: true, default: [] })
   images: string[];
 
@@ -33,7 +33,7 @@ export class Service extends CustomBaseEntity {
   @Column({ type: 'enum', enum: ServiceType })
   type: ServiceType;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   detail: string;
 

@@ -4,7 +4,6 @@ import { nanoid } from 'nanoid';
 import { join } from 'path';
 import slug from 'slug';
 import { S3Adapter } from '../service/aws/s3';
-import puppeteer from 'puppeteer';
 
 export const getFileName = (fileName: string) => {
   const index = fileName.indexOf('.');
@@ -111,10 +110,3 @@ export const getFilePathsFromFolder = (dir: string) => {
     throw new Error(error);
   }
 };
-
-export const launchBrowser = async (path) =>
-  await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox'],
-    executablePath: path,
-  });

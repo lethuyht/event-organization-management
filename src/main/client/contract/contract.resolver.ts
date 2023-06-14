@@ -40,4 +40,12 @@ export class ContractResolver {
   ) {
     return this.contractService.requestCreateContract(input, ctx.currentUser);
   }
+
+  @Mutation(() => String)
+  uploadContract(
+    @Args('input') input: Buffer,
+    @Args('contractId') contractId: string,
+  ) {
+    return this.contractService.uploadContract(input, contractId);
+  }
 }

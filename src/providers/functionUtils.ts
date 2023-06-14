@@ -4,6 +4,8 @@ import { nanoid } from 'nanoid';
 import { join } from 'path';
 import slug from 'slug';
 import { S3Adapter } from '../service/aws/s3';
+import puppeteer from 'puppeteer';
+import { configuration } from '@/config';
 
 export const getFileName = (fileName: string) => {
   const index = fileName.indexOf('.');
@@ -83,7 +85,7 @@ export const uploadFileToS3 = async (
   const key = `${pathType}/${addTimeToKey ? `${Date.now()}-` : ''}${fileName}`;
   const uploadData = await S3.upload(data, key, fileType);
 
-  return uploadData['Key'];
+  return uploadData;
 };
 
 export const getFilePathsFromFolder = (dir: string) => {
@@ -110,3 +112,8 @@ export const getFilePathsFromFolder = (dir: string) => {
     throw new Error(error);
   }
 };
+
+export const launchBrowser = async () =>
+  await puppeteer.launch({
+    headless: true,
+  });

@@ -33,6 +33,10 @@ export class Service extends CustomBaseEntity {
   @Column({ type: 'enum', enum: ServiceType })
   type: ServiceType;
 
+  @Field()
+  @Column()
+  detail: string;
+
   @Field(() => Boolean)
   @Column()
   isPublished: boolean;

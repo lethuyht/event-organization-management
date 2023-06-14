@@ -20,6 +20,9 @@ export class UpsertServiceDto {
   @Field()
   description: string;
 
+  @Field()
+  detail: string;
+
   @Field(() => ServiceType)
   type: ServiceType;
 

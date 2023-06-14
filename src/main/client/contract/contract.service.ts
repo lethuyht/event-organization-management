@@ -24,6 +24,7 @@ import { ContractTemplate } from '@/main/shared/contract/contract.template';
 import * as Handlebars from 'handlebars';
 import { Browser, Page } from 'puppeteer';
 import { launchBrowser, uploadFileToS3 } from '@/providers/functionUtils';
+import locateChrome from 'locate-chrome';
 
 @Injectable()
 export class ContractService {
@@ -51,7 +52,7 @@ export class ContractService {
   }
 
   async requestCreateContract(input: RequestContractDto, user: User) {
-    let browser;
+    let browser: Browser;
     let page: Page;
 
     const { cartItemIds, details: detailInput } = input;
@@ -139,7 +140,11 @@ export class ContractService {
     await Contract.save(contract);
 
     try {
-      browser = await launchBrowser();
+      const executablePath = await new Promise((resolve) =>
+        locateChrome((arg) => resolve(arg)),
+      );
+
+      browser = await launchBrowser(executablePath);
 
       const contractData = {};
       const contractTemplate =

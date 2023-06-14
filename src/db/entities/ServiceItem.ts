@@ -50,6 +50,10 @@ export class ServiceItem extends CustomBaseEntity {
   @JoinColumn({ name: 'service_id' })
   service: Service;
 
+  @Field(() => [String])
+  @Column({ type: 'text', array: true, nullable: true, default: [] })
+  images: string[];
+
   static getRelations(
     info: GraphQLResolveInfo,
     withPagination?: boolean,

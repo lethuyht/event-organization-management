@@ -13,6 +13,10 @@ export const configuration = {
   databaseTest: process.env.DATABASE_URL || '',
   redisUrl: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
   sentryKey: process.env.SENTRY_DSN || '',
+  stripe: {
+    secret_key: process.env.SECRET_KEY,
+    polaris_secret_key: process.env.POLARIS_SECRET_KEY,
+  },
   aws: {
     region: process.env.REGION || 'ap-southeast-1',
     secretKey: process.env.AWS_SECRET_KEY,

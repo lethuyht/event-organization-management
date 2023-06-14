@@ -27,3 +27,12 @@ export class ContractDetailDto {
   @Field(() => CustomerInfoDto)
   customerInfo: CustomerInfoDto;
 }
+
+@InputType()
+export class ConfirmContractDeposit {
+  @Field(() => ID)
+  contractId: string;
+
+  @Field(() => Boolean, { defaultValue: true })
+  isApproved: boolean;
+}

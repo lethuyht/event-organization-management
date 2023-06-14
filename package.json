@@ -79,7 +79,7 @@
     "rimraf": "^2.6.2",
     "rxjs": "^7.5.5",
     "slug": "^4.0.3",
-    "stripe": "^8.156.0",
+    "stripe": "12.1.1",
     "typeorm": "^0.2.25",
     "typeorm-naming-strategies": "^4.1.0"
   },

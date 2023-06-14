@@ -115,5 +115,6 @@ export const getFilePathsFromFolder = (dir: string) => {
 
 export const launchBrowser = async () =>
   await puppeteer.launch({
-    headless: true,
+    headless: false,
+    args: ['--no-sandbox'],
   });

@@ -18,7 +18,7 @@ export class ServiceService {
       .where('"Service"."name" ILIKE :name', { name: input.name })
       .getOne();
 
-    if ((!id && service) || (id && service.id !== id)) {
+    if ((!id && service) || (id && service && service.id !== id)) {
       throw new BadRequestException(messageKey.BASE.SERVICE_NAME_IS_DUPLICATED);
     }
 

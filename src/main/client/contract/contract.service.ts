@@ -22,6 +22,8 @@ import dayjs from 'dayjs';
 import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
 import { ContractTemplate } from '@/main/shared/contract/contract.template';
 import * as Handlebars from 'handlebars';
+import { Browser, Page } from 'puppeteer';
+import { launchBrowser, uploadFileToS3 } from '@/providers/functionUtils';
 
 @Injectable()
 export class ContractService {
@@ -49,6 +51,9 @@ export class ContractService {
   }
 
   async requestCreateContract(input: RequestContractDto, user: User) {
+    let browser: Browser;
+    let page: Page;
+
     const { cartItemIds, details: detailInput } = input;
 
     if (
@@ -114,10 +119,6 @@ export class ContractService {
     }
 
     const details = detailInput as unknown as JSON;
-
-    // const contractData;
-    // const contractTemplate = Handlebars.compile(ContractTemplate)(contractData);
-
     const contract = Contract.create({
       userId: user.id,
       type: CONTRACT_TYPE.Service,
@@ -135,6 +136,38 @@ export class ContractService {
       .whereInIds(cartItemIds)
       .execute();
 
-    return await Contract.save(contract);
+    await Contract.save(contract);
+
+    try {
+      browser = await launchBrowser();
+
+      const contractData = {};
+      const contractTemplate =
+        Handlebars.compile(ContractTemplate)(contractData);
+      page = await browser.newPage();
+
+      await page.setContent(contractTemplate, { waitUntil: ['load'] });
+
+      const file = await page.pdf({
+        format: 'a0',
+        printBackground: true,
+      });
+
+      const response = (await uploadFileToS3({
+        data: file,
+        pathType: `Public/Contracts/${contract.userId}`,
+        fileName: `${contract.id}-${dayjs().format('YYYY-MM-DD')}.pdf`,
+        fileType: 'application/pdf',
+      })) as unknown as any;
+
+      contract.fileUrl = response.Location;
+      await Contract.save(contract);
+    } catch (error) {
+      if (error instanceof Error) {
+        return error;
+      }
+    }
+
+    return contract;
   }
 }

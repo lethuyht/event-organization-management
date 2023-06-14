@@ -5,7 +5,6 @@ import { join } from 'path';
 import slug from 'slug';
 import { S3Adapter } from '../service/aws/s3';
 import puppeteer from 'puppeteer';
-import { configuration } from '@/config';
 
 export const getFileName = (fileName: string) => {
   const index = fileName.indexOf('.');
@@ -115,6 +114,6 @@ export const getFilePathsFromFolder = (dir: string) => {
 
 export const launchBrowser = async () =>
   await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ['--no-sandbox'],
   });

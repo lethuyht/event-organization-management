@@ -51,7 +51,7 @@ export class ContractService {
   }
 
   async requestCreateContract(input: RequestContractDto, user: User) {
-    let browser: Browser;
+    let browser;
     let page: Page;
 
     const { cartItemIds, details: detailInput } = input;
@@ -131,10 +131,10 @@ export class ContractService {
       contractServiceItems,
     });
 
-    await CartItem.createQueryBuilder()
-      .delete()
-      .whereInIds(cartItemIds)
-      .execute();
+    // await CartItem.createQueryBuilder()
+    //   .delete()
+    //   .whereInIds(cartItemIds)
+    //   .execute();
 
     await Contract.save(contract);
 
@@ -162,6 +162,8 @@ export class ContractService {
 
       contract.fileUrl = response.Location;
       await Contract.save(contract);
+
+      await browser.close();
     } catch (error) {
       if (error instanceof Error) {
         return error;

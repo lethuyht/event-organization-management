@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ContractResolver } from './contract.resolver';
 import { ContractService } from './contract.service';
-import { StripeService } from '@/main/shared/stripe/stripe.service';
+import { StripeModule } from '@/main/shared/stripe/stripe.module';
 
 @Module({
-  providers: [ContractResolver, ContractService, StripeService],
+  imports: [StripeModule],
+  providers: [ContractResolver, ContractService],
 })
 export class ContractModule {}

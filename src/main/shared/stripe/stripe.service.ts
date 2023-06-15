@@ -1,4 +1,4 @@
-import { DEPOSIT_PERCENT, WEBHOOK_TYPE } from '@/common/constant';
+import { DEPOSIT_PERCENT, TIMEZONE, WEBHOOK_TYPE } from '@/common/constant';
 import { configuration } from '@/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { WEBHOOK_EVENT_TYPE } from './command/constraint';
@@ -17,8 +17,9 @@ import { getManager } from 'typeorm';
 import { ServiceItem } from '@/db/entities/ServiceItem';
 import Stripe from 'stripe';
 
-// import { CronJob } from 'cron';
-// import { SchedulerRegistry } from '@nestjs/schedule';
+import { CronJob } from 'cron';
+import { SchedulerRegistry } from '@nestjs/schedule';
+import { EmailService } from '@/service/smtp/service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -26,9 +27,10 @@ dayjs.extend(timezone);
 @Injectable()
 export class StripeService {
   private stripeAdapter: StripeAdapter;
-  constructor() {
-    // private scheduleRegister: SchedulerRegistry
+  private emailService: EmailService;
+  constructor(private scheduleRegister: SchedulerRegistry) {
     this.stripeAdapter = new StripeAdapter();
+    this.emailService = new EmailService();
   }
 
   public async handleConnectWebhooks(
@@ -109,8 +111,36 @@ export class StripeService {
 
         contract.status = status as CONTRACT_STATUS;
         contract.paymentIntentId = object.payment_intent as string;
-
         await trx.getRepository(Contract).save(contract);
+
+        try {
+          const date = dayjs.tz(`${contract.hireDate}`, TIMEZONE).format();
+
+          const job = new CronJob(
+            new Date(date),
+            async () => {
+              const cronContract = await Contract.findOne({ id: contract.id });
+
+              if (cronContract.status === CONTRACT_STATUS.InProgress) {
+                await this.handleRefundContractDeposit(cronContract);
+                contract.status = CONTRACT_STATUS.AdminCancel;
+                await Contract.save(cronContract);
+              }
+            },
+            null,
+            true,
+          );
+
+          this.scheduleRegister.addCronJob(
+            `schedule-${date}-${contractId}`,
+            job,
+          );
+        } catch (error) {
+          console.log(
+            '🚀 ~ file: stripe.service.ts:316 ~ StripeService ~s error:',
+            error,
+          );
+        }
       });
     }
   }

@@ -59,3 +59,5 @@ export enum WEBHOOK_TYPE {
 }
 
 export const DEPOSIT_PERCENT = 0.3;
+
+export const TIMEZONE = 'Asia/Ho_Chi_Minh';

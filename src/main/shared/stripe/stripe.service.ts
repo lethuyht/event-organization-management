@@ -238,6 +238,72 @@ export class StripeService {
     });
   }
 
+  checkoutRemainBillingContract(
+    contract: Contract,
+    rest: Partial<Omit<DepositContractDto, 'contractId'>>,
+    user: User,
+  ) {
+    const serviceItems = contract.contractServiceItems;
+
+    return getManager().transaction(async (trx) => {
+      const products: Record<
+        string,
+        { price: number; product: Stripe.Product }
+      > = {};
+
+      for (const serviceItem of serviceItems) {
+        const item = await ServiceItem.findOne({
+          id: serviceItem.serviceItemId,
+        });
+
+        const product = await this.stripeAdapter.createProduct({
+          productName: item.name,
+          productSystemId: item.id,
+          imageUrls: item.images ? [item.images[0]] : [],
+          description: `Deposit 70% of ${item.price}$`,
+        });
+
+        products[item.id] = {
+          product,
+          price: item.price,
+        };
+      }
+
+      const lines = Object.keys(products).map((serviceItemId) => {
+        const productItem = serviceItems.find(
+          (serviceItem) => serviceItem.serviceItemId === serviceItemId,
+        );
+
+        return {
+          amount: products[serviceItemId].price * (1 - DEPOSIT_PERCENT),
+          currency: 'usd',
+          product: products[serviceItemId].product.id,
+          quantity: productItem.amount,
+        };
+      });
+
+      const lineItems = await this.stripeAdapter.createLineItems(lines);
+
+      const result = await this.stripeAdapter.createCheckoutSession({
+        successUrl: rest.successUrl,
+        cancelUrl: rest.cancelUrl,
+        mode: 'payment',
+        lineItems,
+        emailCustomer: user.email,
+        metadata: {
+          contractId: contract.id,
+          status: CONTRACT_STATUS.Completed,
+        },
+      });
+
+      return {
+        checkoutUrl: result.url,
+        successUrl: result.success_url,
+        cancelUrl: result.cancel_url,
+      };
+    });
+  }
+
   async getBalanceOfAdmin() {
     return this.stripeAdapter.getBalances();
   }

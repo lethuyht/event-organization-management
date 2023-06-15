@@ -7,7 +7,8 @@ import { Roles } from '@/decorators/roles.decorator';
 import { Auth } from '@/decorators/auth.decorator';
 import { ROLE } from '@/common/constant';
 import { Context, GetContext } from '@/decorators/user.decorator';
-import { ConfirmContractDeposit, RequestContractDto } from './dto';
+import { ConfirmContractDeposit } from './dto';
+import { RequestContractDto, UpdateContractStatusDto } from './dto';
 
 @Auth(['Roles'])
 @Resolver()
@@ -47,5 +48,11 @@ export class ContractResolver {
     @GetContext() ctx: Context,
   ) {
     return this.contractService.confirmContractDeposit(input, ctx.currentUser);
+  }
+
+  @Roles(ROLE.Admin)
+  @Mutation(() => IContract)
+  updateStatusContract(@Args('input') input: UpdateContractStatusDto) {
+    return this.contractService.updateStatusContract(input);
   }
 }

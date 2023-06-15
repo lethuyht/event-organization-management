@@ -21,12 +21,12 @@ export enum CONTRACT_TYPE {
 
 export enum CONTRACT_STATUS {
   Draft = 'Draft',
-  DepositPaid = 'Deposit_paid',
-  InProgress = 'In_progress',
-  WaitingPaid = 'Waiting_paid',
+  DepositPaid = 'DepositPaid',
+  InProgress = 'InProgress',
+  WaitingPaid = 'WaitingPaid',
   Completed = 'Completed',
   Cancel = 'Cancel',
-  AdminCancel = 'Admin_cancel',
+  AdminCancel = 'AdminCancel',
 }
 
 @ObjectType({ isAbstract: true })

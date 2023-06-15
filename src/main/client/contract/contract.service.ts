@@ -1,30 +1,30 @@
+import { attachFilters } from '@/common/base/attachQueryFilter';
+import {
+  createFilterQueryBuilder,
+  getPaginationResponse,
+} from '@/common/base/getPaginationResponse';
+import { QUERY_OPERATOR, ROLE } from '@/common/constant';
+import { QueryFilterDto } from '@/common/dtos/queryFilter';
+import { CartItem } from '@/db/entities/CartItem';
 import {
   CONTRACT_STATUS,
   CONTRACT_TYPE,
   Contract,
 } from '@/db/entities/Contract';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { GraphQLResolveInfo } from 'graphql';
-import { ContractQueryCommand } from './command/ContractQuery.query';
-import { QueryFilterDto } from '@/common/dtos/queryFilter';
-import {
-  createFilterQueryBuilder,
-  getPaginationResponse,
-} from '@/common/base/getPaginationResponse';
+import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
 import { User } from '@/db/entities/User';
-import { attachFilters } from '@/common/base/attachQueryFilter';
-import { QUERY_OPERATOR, ROLE } from '@/common/constant';
-import { ConfirmContractDeposit, RequestContractDto } from './dto';
-import { CartItem } from '@/db/entities/CartItem';
+import { StripeService } from '@/main/shared/stripe/stripe.service';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import dayjs from 'dayjs';
+import { GraphQLResolveInfo } from 'graphql';
 import _ from 'lodash';
 import { ValidateCartItem } from '../cart/command/validateCartItem.command';
-import dayjs from 'dayjs';
-import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
-import { ContractTemplate } from '@/main/shared/contract/contract.template';
-import * as Handlebars from 'handlebars';
-import { uploadFileToS3 } from '@/providers/functionUtils';
-import locateChrome from 'locate-chrome';
-import { StripeService } from '@/main/shared/stripe/stripe.service';
+import { ContractQueryCommand } from './command/ContractQuery.query';
+import {
+  ConfirmContractDeposit,
+  RequestContractDto,
+  UpdateContractStatusDto,
+} from './dto';
 
 @Injectable()
 export class ContractService {
@@ -182,6 +182,37 @@ export class ContractService {
         }
     }
 
+    return Contract.save(contract);
+  }
+
+  async updateStatusContract(input: UpdateContractStatusDto) {
+    const contract = await ContractQueryCommand.getOneById(
+      input.contractId,
+      true,
+      [],
+    );
+
+    switch (input.status) {
+      case CONTRACT_STATUS.InProgress:
+        if (contract.status !== CONTRACT_STATUS.DepositPaid) {
+          throw new BadRequestException('Hợp đồng vẫn chưa đặt cọc!');
+        }
+
+        break;
+      case CONTRACT_STATUS.WaitingPaid:
+        if (dayjs(new Date()).isBefore(contract.hireEndDate)) {
+          throw new BadRequestException(
+            'Hạn thuê của hợp đồng vẫn chưa kết thúc. Vui lòng thử lại sau khi hợp đồng kết thúc',
+          );
+        }
+
+        break;
+
+      case CONTRACT_STATUS.Completed:
+        break;
+    }
+
+    contract.status = input.status;
     return Contract.save(contract);
   }
 }

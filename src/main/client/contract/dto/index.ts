@@ -2,6 +2,7 @@ import { Field, ID, InputType } from '@nestjs/graphql';
 import { ContractDetail } from '../interface';
 import { CustomerInfoDto } from '@/main/shared/user/dto';
 import { Type } from 'class-transformer';
+import { CONTRACT_STATUS } from '@/db/entities/Contract';
 
 @InputType()
 export class RequestContractDto {
@@ -35,4 +36,13 @@ export class ConfirmContractDeposit {
 
   @Field(() => Boolean, { defaultValue: true })
   isApproved: boolean;
+}
+
+@InputType()
+export class UpdateContractStatusDto {
+  @Field(() => ID)
+  contractId: string;
+
+  @Field(() => CONTRACT_STATUS)
+  status: CONTRACT_STATUS;
 }

@@ -8,7 +8,7 @@ export class StripeAdapter {
   readonly stripe: Stripe;
   constructor() {
     this.stripe = new Stripe(configuration.stripe.secret_key, {
-      apiVersion: '2022-11-15',
+      apiVersion: '2020-08-27',
       typescript: true,
     });
   }

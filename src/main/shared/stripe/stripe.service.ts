@@ -81,9 +81,9 @@ export class StripeService {
       );
     }
 
-    const paymentIntent = await this.stripeAdapter.getPaymentIntent(
+    const paymentIntent = (await this.stripeAdapter.getPaymentIntent(
       contract.paymentIntentId,
-    );
+    )) as any;
 
     await this.stripeAdapter.createRefund({
       chargeId: paymentIntent.latest_charge as string,

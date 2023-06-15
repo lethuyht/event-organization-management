@@ -14,8 +14,16 @@ import { PublishServiceDto, UpsertServiceDto } from './dto';
 export class ServiceService {
   async upsertService(input: UpsertServiceDto) {
     const { id } = input;
+
     const service = await Service.createQueryBuilder()
-      .where('"Service"."name" ILIKE :name', { name: input.name })
+      .where((qb) => {
+        if (input.name) {
+          qb.andWhere('"Service"."name" ILIKE :name', { name: input.name });
+        }
+        if (id) {
+          qb.andWhere('"Service"."id" = :id', { id });
+        }
+      })
       .getOne();
 
     if ((!id && service) || (id && service && service.id !== id)) {

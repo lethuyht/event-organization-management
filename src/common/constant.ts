@@ -53,3 +53,9 @@ export enum QUERY_OPERATOR {
   isNotNull = 'isNotNull',
   unaccentLike = 'unaccentLike',
 }
+
+export enum WEBHOOK_TYPE {
+  POLARIS_ACCOUNT,
+}
+
+export const DEPOSIT_PERCENT = 0.3;

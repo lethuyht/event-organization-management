@@ -18,7 +18,7 @@ async function bootstrap() {
     app.getHttpAdapter();
 
     // NOTE: parse raw body
-    app.use('/stripe-webhooks', express.raw({ type: '*/*' }));
+    app.use('/stripe-webhooks', express.raw({ type: 'application/json' }));
 
     // NOTE: body parser
     app.use(bodyParser.json({ limit: '50mb' }));

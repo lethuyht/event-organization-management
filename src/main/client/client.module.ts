@@ -12,6 +12,7 @@ import { ServiceModule } from './service/service.module';
 import { CartModule } from './cart/cart.module';
 import { ContractModule } from './contract/contract.module';
 import { EventRequestModule } from './eventRequest/eventRequest.module';
+import { StripeModule } from '../shared/stripe/stripe.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { EventRequestModule } from './eventRequest/eventRequest.module';
         CartModule,
         ContractModule,
         EventRequestModule,
+        StripeModule,
       ],
     }),
     UploadModule,
@@ -48,6 +50,7 @@ import { EventRequestModule } from './eventRequest/eventRequest.module';
     CartModule,
     ContractModule,
     EventRequestModule,
+    StripeModule,
   ],
 })
 export class ClientModule {}

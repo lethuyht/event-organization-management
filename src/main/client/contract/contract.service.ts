@@ -13,8 +13,8 @@ import {
 } from '@/common/base/getPaginationResponse';
 import { User } from '@/db/entities/User';
 import { attachFilters } from '@/common/base/attachQueryFilter';
-import { QUERY_OPERATOR } from '@/common/constant';
-import { RequestContractDto } from './dto';
+import { QUERY_OPERATOR, ROLE } from '@/common/constant';
+import { ConfirmContractDeposit, RequestContractDto } from './dto';
 import { CartItem } from '@/db/entities/CartItem';
 import _ from 'lodash';
 import { ValidateCartItem } from '../cart/command/validateCartItem.command';
@@ -24,9 +24,11 @@ import { ContractTemplate } from '@/main/shared/contract/contract.template';
 import * as Handlebars from 'handlebars';
 import { uploadFileToS3 } from '@/providers/functionUtils';
 import locateChrome from 'locate-chrome';
+import { StripeService } from '@/main/shared/stripe/stripe.service';
 
 @Injectable()
 export class ContractService {
+  constructor(private stripeService: StripeService) {}
   async getOne(id: string, info: GraphQLResolveInfo) {
     const relations = info ? Contract.getRelations(info) : [];
 
@@ -135,5 +137,51 @@ export class ContractService {
 
     await Contract.save(contract);
     return contract;
+  }
+
+  async confirmContractDeposit(input: ConfirmContractDeposit, user: User) {
+    const currentUser = await User.findOne({
+      where: { id: user.id },
+      relations: ['role'],
+    });
+
+    const { contractId, isApproved } = input;
+    const contract = await ContractQueryCommand.getOneById(
+      contractId,
+      true,
+      [],
+    );
+
+    if (contract.status !== CONTRACT_STATUS.DepositPaid) {
+      throw new BadRequestException(
+        'Trạng thái hợp đồng không hợp lệ. Vui lòng thực hiện hoạt động khác',
+      );
+    }
+
+    if (
+      contract.userId !== currentUser.id &&
+      currentUser.role.name !== ROLE.Admin
+    ) {
+      throw new BadRequestException(
+        'Bạn không có quyền chỉnh sửa trạng thái của hợp đồng',
+      );
+    }
+
+    switch (currentUser.role.name) {
+      case ROLE.Admin:
+        contract.status = CONTRACT_STATUS.InProgress;
+        if (!isApproved) {
+          contract.status = CONTRACT_STATUS.AdminCancel;
+          await this.stripeService.handleRefundContractDeposit(contract);
+        }
+
+        break;
+      default:
+        if (!isApproved) {
+          contract.status = CONTRACT_STATUS.Cancel;
+        }
+    }
+
+    return Contract.save(contract);
   }
 }

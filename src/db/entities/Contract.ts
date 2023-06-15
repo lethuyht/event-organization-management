@@ -76,6 +76,10 @@ export class Contract extends CustomBaseEntity {
   @Column()
   userId: string;
 
+  @Field()
+  @Column()
+  paymentIntentId: string;
+
   @Field(() => User)
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })

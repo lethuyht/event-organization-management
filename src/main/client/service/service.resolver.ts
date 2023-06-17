@@ -15,8 +15,11 @@ export class ServiceResolver {
   @Roles(ROLE.Admin)
   @Auth(['Roles'])
   @Mutation(() => IService, { name: 'upsertService' })
-  upsertService(@Args('input') input: UpsertServiceDto) {
-    return this.service.upsertService(input);
+  upsertService(
+    @Args('input') input: UpsertServiceDto,
+    @Info() info: GraphQLResolveInfo,
+  ) {
+    return this.service.upsertService(input, info);
   }
 
   @Query(() => IServices)

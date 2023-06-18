@@ -12,7 +12,7 @@ import { PublishServiceDto, UpsertServiceDto } from './dto';
 
 @Injectable()
 export class ServiceService {
-  async upsertService(input: UpsertServiceDto) {
+  async upsertService(input: UpsertServiceDto, info: GraphQLResolveInfo) {
     const { id } = input;
 
     const service = await Service.createQueryBuilder()

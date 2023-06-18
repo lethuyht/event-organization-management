@@ -38,7 +38,11 @@ export class ServiceService {
       newService.serviceItems = input.serviceItems;
     }
 
-    return Service.save(newService);
+    await Service.save(newService);
+    return Service.findOne({
+      where: { id: newService.id },
+      relations: ['serviceItems'],
+    });
   }
 
   getServices(query: QueryFilterDto, info: GraphQLResolveInfo) {

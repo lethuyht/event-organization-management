@@ -238,8 +238,7 @@ export class ContractService {
       throw new BadRequestException('Hợp đồng chưa được đặt cọc');
     }
 
-    //handle checkout remain cbilling
-    await this.stripeService.checkoutRemainBillingContract(
+    return await this.stripeService.checkoutRemainBillingContract(
       contract,
       rest,
       user,

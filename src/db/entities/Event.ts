@@ -2,7 +2,8 @@ import { CustomBaseEntity } from '@/common/base/baseEntity';
 import { getJoinRelation } from '@/providers/selectionUtils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { GraphQLResolveInfo } from 'graphql';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { EventServiceItem } from './EventServiceItem';
 
 @ObjectType({ isAbstract: true })
 @Entity('event')
@@ -30,6 +31,10 @@ export class Event extends CustomBaseEntity {
   @Field(() => Boolean, { defaultValue: false })
   @Column({ default: false, type: 'boolean' })
   isPublic: boolean;
+
+  @Field(() => [EventServiceItem], { nullable: true })
+  @OneToMany(() => EventServiceItem, (et) => et.event, { cascade: true })
+  eventServiceItems: EventServiceItem[];
 
   static getRelations(
     info: GraphQLResolveInfo,

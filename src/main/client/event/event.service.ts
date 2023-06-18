@@ -32,6 +32,11 @@ export class EventService {
 
     const newEvent = Event.merge(event ?? Event.create(), input);
 
-    return await newEvent.save();
+    await Event.save(newEvent);
+
+    return Event.findOne({
+      where: { id: newEvent.id },
+      relations: ['eventServiceItems', 'eventServiceItems.serviceItem'],
+    });
   }
 }

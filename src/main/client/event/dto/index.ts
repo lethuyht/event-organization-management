@@ -1,6 +1,15 @@
+import { EventServiceItem } from '@/db/entities/EventServiceItem';
 import { EntityExistingValidator } from '@/decorators/entityExistingValidator.decorator';
 import { Field, ID, InputType } from '@nestjs/graphql';
-import { IsBoolean, IsOptional, Validate } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  Max,
+  Min,
+  Validate,
+  ValidateNested,
+} from 'class-validator';
 
 @InputType()
 export class UpsertEventDto {
@@ -29,4 +38,27 @@ export class UpsertEventDto {
   @IsOptional()
   @IsBoolean()
   isPublic: boolean;
+
+  @Field(() => [EventServiceItemInput], { nullable: true })
+  @ValidateNested({ each: true })
+  @IsOptional()
+  eventServiceItems: EventServiceItem[];
+}
+
+@InputType()
+export class EventServiceItemInput {
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  id: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  serviceItemId: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  amount: number;
 }

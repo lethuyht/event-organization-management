@@ -5,11 +5,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Service } from './Service';
 import { GraphQLResolveInfo } from 'graphql';
 import { getJoinRelation } from '@/providers/selectionUtils';
+import { EventServiceItem } from './EventServiceItem';
 
 @ObjectType({ isAbstract: true })
 @Entity('service_item')
@@ -53,6 +55,10 @@ export class ServiceItem extends CustomBaseEntity {
   @Field(() => [String])
   @Column({ type: 'text', array: true, nullable: true, default: [] })
   images: string[];
+
+  @Field(() => [EventServiceItem], { nullable: true })
+  @OneToMany(() => EventServiceItem, (et) => et.serviceItem)
+  eventServiceItems: EventServiceItem[];
 
   static getRelations(
     info: GraphQLResolveInfo,

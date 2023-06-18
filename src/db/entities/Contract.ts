@@ -7,12 +7,14 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './User';
 import { ContractServiceItem } from './ContractServiceItem';
 import { GraphQLResolveInfo } from 'graphql';
 import { getJoinRelation } from '@/providers/selectionUtils';
+import { ContractEvent } from './ContractEvent';
 
 export enum CONTRACT_TYPE {
   Event = 'Event',
@@ -85,6 +87,10 @@ export class Contract extends CustomBaseEntity {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @Field(() => ContractEvent, { nullable: true })
+  @OneToOne(() => ContractEvent, (ct) => ct.contract)
+  contractEvent: ContractEvent;
+
   @Field(() => [ContractServiceItem])
   @OneToMany(
     () => ContractServiceItem,
@@ -102,6 +108,7 @@ export class Contract extends CustomBaseEntity {
       ['user'],
       ['contractServiceItems'],
       ['contractServiceItems', 'serviceItem'],
+      ['contractEventRequest'],
     ];
     return getJoinRelation(info, fields, withPagination, forceInclude);
   }

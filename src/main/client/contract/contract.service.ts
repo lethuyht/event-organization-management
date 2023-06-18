@@ -25,6 +25,7 @@ import {
   RequestContractDto,
   UpdateContractStatusDto,
 } from './dto';
+import { DepositContractDto } from '@/main/shared/stripe/dto';
 
 @Injectable()
 export class ContractService {
@@ -214,5 +215,33 @@ export class ContractService {
 
     contract.status = input.status;
     return Contract.save(contract);
+  }
+
+  async checkoutRemainBillingContract(input: DepositContractDto, user: User) {
+    const { contractId, ...rest } = input;
+    const contract = await Contract.findOne({
+      where: { id: contractId },
+      relations: ['contractServiceItems'],
+    });
+
+    if (!contract) {
+      throw new BadRequestException('Hợp đồng không tồn tại');
+    }
+
+    if (contract.status !== CONTRACT_STATUS.WaitingPaid) {
+      throw new BadRequestException(
+        'Trạng thái của hợp đồng không hợp lệ. Vui lòng thực hiện hành động này sau khi hợp đồng có hiệu lực',
+      );
+    }
+
+    if (!contract.paymentIntentId) {
+      throw new BadRequestException('Hợp đồng chưa được đặt cọc');
+    }
+
+    return await this.stripeService.checkoutRemainBillingContract(
+      contract,
+      rest,
+      user,
+    );
   }
 }

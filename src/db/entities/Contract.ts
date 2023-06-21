@@ -88,7 +88,7 @@ export class Contract extends CustomBaseEntity {
   user: User;
 
   @Field(() => ContractEvent, { nullable: true })
-  @OneToOne(() => ContractEvent, (ct) => ct.contract)
+  @OneToOne(() => ContractEvent, (ct) => ct.contract, { cascade: true })
   contractEvent: ContractEvent;
 
   @Field(() => [ContractServiceItem])

@@ -1,4 +1,5 @@
-import { Contract } from '@/db/entities/Contract';
+import { CONTRACT_STATUS } from '@/db/entities/Contract';
+import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem';
 import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
 import { ServiceItem } from '@/db/entities/ServiceItem';
 import { BadRequestException } from '@nestjs/common';
@@ -36,17 +37,36 @@ export class ValidateCartItem {
       );
     }
 
-    const { sum } = await ContractServiceItem.createQueryBuilder()
-      .innerJoin('ContractServiceItem.contract', 'contract')
-      .where('"contract"."hire_end_date" <= :hireEndDate', {
-        hireEndDate: dayjs(endDate).add(1, 'day'),
+    let totalAmount = 0;
+
+    const { sum: sum1 } = await ContractServiceItem.createQueryBuilder()
+      .innerJoin('ContractServiceItem.contract', 'Contract')
+      .where('Contract.hireEndDate >= :hireEndDate', {
+        hireEndDate: dayjs(startDate).add(1, 'day'),
       })
-      .select(['SUM("ContractServiceItem"."amount")'])
+      .andWhere('Contract.status NOT IN (:...status)', {
+        status: [CONTRACT_STATUS.Cancel],
+      })
+      .select('SUM(ContractServiceItem.amount)')
       .getRawOne();
+
+    const { sum: sum2 } = await ContractEventServiceItem.createQueryBuilder()
+      .innerJoin('ContractEventServiceItem.contractEvent', 'contractEvent')
+      .innerJoin('contractEvent.contract', 'contract')
+      .where('"contract"."hire_end_date" >= :hireEndDate', {
+        hireEndDate: dayjs(startDate).add(1, 'day').format(),
+      })
+      .andWhere('"contract"."status" NOT IN (:...status)', {
+        status: [CONTRACT_STATUS.Cancel],
+      })
+      .select('SUM(ContractEventServiceItem.amount)')
+      .getRawOne();
+
+    totalAmount = sum1 + sum2;
 
     if (
       serviceItem.totalQuantity < amount ||
-      serviceItem.totalQuantity - sum < amount
+      serviceItem.totalQuantity < totalAmount + amount
     ) {
       throw new BadRequestException(
         'Dịch vụ hiện không đủ số lượng. Vui lòng nhập số lượng phù hợp hoặc lựa chọn dịch vụ khác!.',

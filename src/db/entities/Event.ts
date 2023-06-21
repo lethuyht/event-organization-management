@@ -41,7 +41,10 @@ export class Event extends CustomBaseEntity {
     withPagination?: boolean,
     forceInclude?: string[],
   ): string[] {
-    const fields = [];
+    const fields = [
+      ['eventServiceItems'],
+      ['eventServiceItems', 'serviceItem'],
+    ];
 
     return getJoinRelation(info, fields, withPagination, forceInclude);
   }

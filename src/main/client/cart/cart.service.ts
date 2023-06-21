@@ -10,20 +10,36 @@ export class CartService {
   async addItemToCart(input: AddItemToCartDto, userId: string) {
     const { serviceItemId, hireDate, amount, hireEndDate } = input;
 
-    await ValidateCartItem.availableServiceItemValidate({
-      serviceItemId,
-      amount,
-      startDate: hireDate,
-      endDate: hireEndDate,
-    });
-
     let cart = await Cart.findOne({ where: { userId } });
 
     if (!cart) {
       cart = await Cart.save(Cart.create({ userId }));
     }
 
-    await CartItem.save(CartItem.create({ ...input, cartId: cart.id }));
+    const existedCartItem = await CartItem.findOne({
+      where: {
+        cartId: cart.id,
+        serviceItemId: serviceItemId,
+        hireDate,
+        hireEndDate,
+      },
+    });
+
+    const newAmount = (existedCartItem?.amount || 0) + amount;
+
+    await ValidateCartItem.availableServiceItemValidate({
+      serviceItemId,
+      amount: newAmount,
+      startDate: hireDate,
+      endDate: hireEndDate,
+    });
+
+    const newCartItem = CartItem.merge(
+      existedCartItem ?? CartItem.create({ ...input, cartId: cart.id }),
+      { amount: newAmount },
+    );
+
+    await CartItem.save(newCartItem);
     return { message: messageKey.BASE.SUCCESSFULLY, success: true };
   }
 }

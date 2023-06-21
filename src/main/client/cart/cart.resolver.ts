@@ -30,4 +30,9 @@ export class CartResolver {
   ) {
     return this.cartService.addItemToCart(input, ctx.currentUser.id);
   }
+
+  @Mutation(() => ResponseMessageBase, { name: 'removeCartItem' })
+  removeCartItem(@Args('cartItemId') id: string, @GetContext() ctx: Context) {
+    return this.cartService.removeCartItem(id, ctx.currentUser);
+  }
 }

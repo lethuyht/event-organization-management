@@ -29,6 +29,14 @@ export class ContractServiceItem extends CustomBaseEntity {
   @Column()
   amount: number;
 
+  @Field()
+  @Column()
+  hireDate: Date;
+
+  @Field()
+  @Column()
+  hireEndDate: Date;
+
   @Field(() => Contract)
   @ManyToOne(() => Contract)
   @JoinColumn({ name: 'contract_id' })

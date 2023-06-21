@@ -7,7 +7,6 @@ import { GetCartComment } from './command/getCartQuery.command';
 import { GraphQLResolveInfo } from 'graphql';
 import { Cart } from '@/db/entities/Cart';
 import { AddItemToCartDto } from './dto';
-import { RefreshResponse } from '../auth/interface';
 import { ResponseMessageBase } from '@/base/interface';
 
 @Resolver()

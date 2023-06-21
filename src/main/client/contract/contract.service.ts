@@ -70,60 +70,49 @@ export class ContractService {
       .whereInIds(cartItemIds)
       .getMany();
 
-    const groupByDateHiredDate = _.groupBy(cartItems, 'hireDate');
-    const groupByDateHiredEndDate = _.groupBy(cartItems, 'hireEndDate');
-
-    if (
-      dayjs(Object.keys(groupByDateHiredDate)[0]).isBefore(dayjs(new Date()))
-    ) {
-      throw new BadRequestException(
-        'Không thể tạo hợp đồng có ngày thuê trước thời điểm hiện tại',
-      );
-    }
-    if (
-      Object.keys(groupByDateHiredDate).length > 1 ||
-      Object.keys(groupByDateHiredEndDate).length > 1
-    ) {
-      throw new BadRequestException(
-        'Không thể tạo hợp đồng chung cho các dịch vụ có ngày thuê hoặc ngày trả khác nhau.',
-      );
-    }
-
     const groupByServiceItemId = _.groupBy(cartItems, 'serviceItemId');
 
     let totalPrice = 0;
-    let startDate;
-    let endDate;
+
+    const startContractDate = dayjs(
+      Math.min(...cartItems.map((el) => dayjs(el.hireDate).unix())) * 1000,
+    ).format();
+
+    const endContractDate = dayjs(
+      Math.max(...cartItems.map((el) => dayjs(el.hireEndDate).unix())) * 1000,
+    ).format();
 
     const contractServiceItems: Partial<ContractServiceItem>[] = [];
 
     for (const [index, serviceItem] of Object.entries(groupByServiceItemId)) {
-      startDate = serviceItem[0].hireDate;
-      endDate = serviceItem[0].hireEndDate;
-      const priceService = serviceItem[0]?.serviceItem?.price || 0;
-      const totalAmount = serviceItem.reduce(
-        (total, cur) => total + cur.amount,
-        0,
-      );
+      for (const item of serviceItem) {
+        totalPrice +=
+          item.amount *
+          (item.serviceItem?.price || 0) *
+          dayjs(item.hireEndDate).diff(item.hireDate, 'day');
 
-      await ValidateCartItem.availableServiceItemValidate({
-        serviceItemId: index,
-        amount: totalAmount,
-        startDate,
-        endDate,
-      });
+        await ValidateCartItem.availableServiceItemValidate({
+          serviceItemId: index,
+          amount: item.amount,
+          startDate: item.hireDate,
+          endDate: item.hireEndDate,
+        });
 
-      totalPrice +=
-        totalAmount * dayjs(endDate).diff(startDate, 'day') * priceService;
-      contractServiceItems.push({ serviceItemId: index, amount: totalAmount });
+        contractServiceItems.push({
+          serviceItemId: index,
+          amount: item.amount,
+          hireDate: item.hireDate,
+          hireEndDate: item.hireEndDate,
+        });
+      }
     }
 
     const details = detailInput as unknown as JSON;
     const contract = Contract.create({
       userId: user.id,
       type: CONTRACT_TYPE.Service,
-      hireDate: startDate,
-      hireEndDate: endDate,
+      hireDate: startContractDate,
+      hireEndDate: endContractDate,
       totalPrice,
       address: input.address,
       details,

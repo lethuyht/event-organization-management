@@ -41,9 +41,13 @@ export class ValidateCartItem {
 
     const { sum: sum1 } = await ContractServiceItem.createQueryBuilder()
       .innerJoin('ContractServiceItem.contract', 'Contract')
-      .where('Contract.hireEndDate >= :hireEndDate', {
-        hireEndDate: dayjs(startDate).add(1, 'day'),
-      })
+      .where(
+        'ContractServiceItem.hireEndDate >= :hireEndDate AND ContractServiceItem.serviceItemId = :serviceItemId',
+        {
+          hireEndDate: dayjs(startDate).add(1, 'day').format(),
+          serviceItemId,
+        },
+      )
       .andWhere('Contract.status NOT IN (:...status)', {
         status: [CONTRACT_STATUS.Cancel],
       })
@@ -53,16 +57,20 @@ export class ValidateCartItem {
     const { sum: sum2 } = await ContractEventServiceItem.createQueryBuilder()
       .innerJoin('ContractEventServiceItem.contractEvent', 'contractEvent')
       .innerJoin('contractEvent.contract', 'contract')
-      .where('"contract"."hire_end_date" >= :hireEndDate', {
-        hireEndDate: dayjs(startDate).add(1, 'day').format(),
-      })
+      .where(
+        '"contract"."hire_end_date" >= :hireEndDate AND ContractEventServiceItem.serviceItemId = :serviceItemId',
+        {
+          hireEndDate: dayjs(startDate).add(1, 'day').format(),
+          serviceItemId,
+        },
+      )
       .andWhere('"contract"."status" NOT IN (:...status)', {
         status: [CONTRACT_STATUS.Cancel],
       })
       .select('SUM(ContractEventServiceItem.amount)')
       .getRawOne();
 
-    totalAmount = sum1 + sum2;
+    totalAmount = (sum1 || 0) + (sum2 || 0);
 
     if (
       serviceItem.totalQuantity < amount ||

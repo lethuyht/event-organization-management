@@ -5,8 +5,10 @@ import { QueryFilterDto } from '@/common/dtos/queryFilter';
 import { Auth } from '@/decorators/auth.decorator';
 import { Roles } from '@/decorators/roles.decorator';
 import { ROLE } from '@/common/constant';
-import { UpsertEventDto } from './dto';
+import { EventRequestInput, UpsertEventDto } from './dto';
 import { GraphQLResolveInfo } from 'graphql';
+import { ResponseMessageBase } from '@/base/interface';
+import { GetContext, Context } from '@/decorators/user.decorator';
 
 @Resolver()
 export class EventResolver {
@@ -34,5 +36,15 @@ export class EventResolver {
   @Mutation(() => IEvent, { name: 'upsertEvent' })
   async upsertEvent(@Args('input') input: UpsertEventDto) {
     return await this.service.upsertEvent(input);
+  }
+
+  @Auth()
+  @Roles(ROLE.User)
+  @Mutation(() => ResponseMessageBase, { name: 'createEventRequest' })
+  async createEventRequest(
+    @Args('input') input: EventRequestInput,
+    @GetContext() ctx: Context,
+  ) {
+    return this.service.createEventRequest(input, ctx.currentUser);
   }
 }

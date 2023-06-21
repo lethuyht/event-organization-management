@@ -5,11 +5,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Contract } from './Contract';
 import { Event } from './Event';
+import { ContractEventServiceItem } from './ContractEventServiceItem';
 
 @ObjectType({ isAbstract: true })
 @Entity('contract_event')
@@ -35,4 +37,10 @@ export class ContractEvent extends CustomBaseEntity {
   @OneToOne(() => Contract)
   @JoinColumn({ name: 'contract_id' })
   contract: Contract;
+
+  @Field(() => [ContractEventServiceItem])
+  @OneToMany(() => ContractEventServiceItem, (ct) => ct.contractEvent, {
+    cascade: true,
+  })
+  contractEventServiceItems: ContractEventServiceItem[];
 }

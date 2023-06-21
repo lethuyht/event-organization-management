@@ -1,6 +1,6 @@
 import { EventServiceItem } from '@/db/entities/EventServiceItem';
 import { EntityExistingValidator } from '@/decorators/entityExistingValidator.decorator';
-import { Field, ID, InputType } from '@nestjs/graphql';
+import { Field, ID, InputType, OmitType } from '@nestjs/graphql';
 import {
   IsBoolean,
   IsInt,
@@ -10,6 +10,8 @@ import {
   Validate,
   ValidateNested,
 } from 'class-validator';
+import { ContractDetailDto } from '../../contract/dto';
+import { ContractDetail } from '../../contract/interface/index';
 
 @InputType()
 export class UpsertEventDto {
@@ -62,3 +64,33 @@ export class EventServiceItemInput {
   @Max(100)
   amount: number;
 }
+
+@InputType()
+export class EventRequestInput {
+  @Field(() => ID)
+  eventId: string;
+
+  @Field(() => Boolean, { defaultValue: false })
+  isCustomized: boolean;
+
+  @Field(() => [CustomizedEventServiceItemInput], { nullable: true })
+  customizedServiceItems: EventServiceItem[];
+
+  @Field(() => Date)
+  hireDate: Date;
+
+  @Field(() => Date)
+  hireEndDate: Date;
+
+  @Field()
+  address: string;
+
+  @Field(() => ContractDetailDto)
+  details: ContractDetail;
+}
+
+@InputType()
+export class CustomizedEventServiceItemInput extends OmitType(
+  EventServiceItemInput,
+  ['id'],
+) {}

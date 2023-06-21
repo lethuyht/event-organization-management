@@ -1,3 +1,4 @@
+import { CartItem } from '@/db/entities/CartItem';
 import { CONTRACT_STATUS } from '@/db/entities/Contract';
 import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem';
 import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
@@ -13,11 +14,15 @@ export class ValidateCartItem {
       amount,
       startDate,
       endDate,
+      cartId,
+      isValidateCart = false,
     }: {
       serviceItemId: string;
       amount: number;
       startDate: Date;
       endDate: Date;
+      cartId?: string;
+      isValidateCart?: boolean;
     },
     transaction = getManager(),
   ) {
@@ -71,6 +76,14 @@ export class ValidateCartItem {
       .getRawOne();
 
     totalAmount = (sum1 || 0) + (sum2 || 0);
+
+    if (isValidateCart && cartId) {
+      const cartItems = await CartItem.find({
+        where: { cartId, serviceItemId },
+      });
+
+      totalAmount += cartItems.reduce((total, item) => total + item.amount, 0);
+    }
 
     if (
       serviceItem.totalQuantity < amount ||

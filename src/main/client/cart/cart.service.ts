@@ -33,6 +33,8 @@ export class CartService {
       amount: newAmount,
       startDate: hireDate,
       endDate: hireEndDate,
+      cartId: cart.id,
+      isValidateCart: true,
     });
 
     const newCartItem = CartItem.merge(

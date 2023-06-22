@@ -1,4 +1,4 @@
-import { Field, ID, InputType } from '@nestjs/graphql';
+import { Field, ID, InputType, ObjectType } from '@nestjs/graphql';
 import { ContractDetail } from '../interface';
 import { CustomerInfoDto } from '@/main/shared/user/dto';
 import { Type } from 'class-transformer';

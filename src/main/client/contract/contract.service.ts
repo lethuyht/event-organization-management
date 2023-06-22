@@ -107,7 +107,7 @@ export class ContractService {
       }
     }
 
-    const details = detailInput as unknown as JSON;
+    const details = detailInput;
     const contract = Contract.create({
       userId: user.id,
       type: CONTRACT_TYPE.Service,

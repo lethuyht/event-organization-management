@@ -36,6 +36,10 @@ export class Event extends CustomBaseEntity {
   @OneToMany(() => EventServiceItem, (et) => et.event, { cascade: true })
   eventServiceItems: EventServiceItem[];
 
+  @Field({ defaultValue: false })
+  @Column()
+  isUsed: boolean;
+
   static getRelations(
     info: GraphQLResolveInfo,
     withPagination?: boolean,

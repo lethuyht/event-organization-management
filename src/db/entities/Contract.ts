@@ -32,6 +32,44 @@ export enum CONTRACT_STATUS {
 }
 
 @ObjectType({ isAbstract: true })
+export class CustomerInfo {
+  @Field()
+  @Column()
+  type: 'company' | 'person';
+
+  @Field()
+  @Column()
+  name: string;
+
+  @Field()
+  @Column()
+  address: string;
+
+  @Field({ nullable: true })
+  @Column()
+  representative: string;
+
+  @Field()
+  @Column()
+  phoneNumber: string;
+}
+
+@ObjectType({ isAbstract: true })
+export class ContractDetail {
+  @Field()
+  @Column()
+  contractName: string;
+
+  @Field(() => Date, { nullable: true, defaultValue: new Date() })
+  @Column()
+  contractCreatedDate: Date;
+
+  @Field(() => CustomerInfo)
+  @Column()
+  customerInfo: CustomerInfo;
+}
+
+@ObjectType({ isAbstract: true })
 @Entity('contract')
 export class Contract extends CustomBaseEntity {
   @Field(() => ID)
@@ -54,9 +92,9 @@ export class Contract extends CustomBaseEntity {
   @Column()
   address: string;
 
-  @Field(() => GraphQLJSON)
-  @Column({ type: 'jsonb' })
-  details: JSON;
+  @Field(() => ContractDetail)
+  @Column({ type: 'jsonb', default: {} })
+  details: ContractDetail;
 
   @Field()
   @Column()

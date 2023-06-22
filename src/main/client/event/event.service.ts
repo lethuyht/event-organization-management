@@ -119,16 +119,34 @@ export class EventService {
         hireEndDate,
         address,
         totalPrice: totalPrice * dayjs(hireEndDate).diff(hireDate, 'day'),
-        details: details as unknown as JSON,
+        details: details,
         contractEvent: {
           eventId: eventId,
           contractEventServiceItems,
         },
       });
 
+      await Event.update({ id: event.id }, { isUsed: true });
+
       await trx.getRepository(Contract).save(contract);
 
       return { message: messageKey.BASE.SUCCESSFULLY, success: true };
     });
+  }
+
+  async deleteEvent(id: string) {
+    const event = await Event.findOne({ id });
+    if (!event) {
+      throw new BadRequestException('Không tìm thấy sự kiện!');
+    }
+
+    if (event.isUsed) {
+      throw new BadRequestException(
+        'Không thể thực hiện thao tác xoá cho sự kiện đã được sử dụng!',
+      );
+    }
+
+    await Event.delete({ id });
+    return { message: messageKey.BASE.DELETED_SUCCESSFULLY, success: true };
   }
 }

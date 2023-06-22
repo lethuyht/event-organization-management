@@ -47,4 +47,11 @@ export class EventResolver {
   ) {
     return this.service.createEventRequest(input, ctx.currentUser);
   }
+
+  @Auth()
+  @Roles(ROLE.Admin)
+  @Mutation(() => ResponseMessageBase, { name: 'deleteEvent' })
+  async deleteEvent(@Args('id') id: string) {
+    return this.service.deleteEvent(id);
+  }
 }

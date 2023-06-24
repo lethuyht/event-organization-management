@@ -74,6 +74,7 @@ export class CartService {
       .where({ userId })
       .leftJoinAndSelect('Cart.cartItems', 'cartItem')
       .leftJoinAndSelect('cartItem.serviceItem', 'serviceItem')
+      .leftJoinAndSelect('serviceItem.service', 'service')
       .addSelect(
         `
         CASE 

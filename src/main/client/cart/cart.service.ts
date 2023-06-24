@@ -69,7 +69,11 @@ export class CartService {
   async getMyCart(userId: string, info: GraphQLResolveInfo) {
     const cart = await Cart.createQueryBuilder()
       .where({ userId })
-      .leftJoinAndSelect('Cart.cartItems', 'cartItem')
+      .leftJoinAndSelect(
+        CartItem,
+        'cartItem',
+        '"cartItem"."cart_id" = "Cart"."id"',
+      )
       .leftJoinAndSelect('cartItem.serviceItem', 'serviceItem')
       .leftJoinAndSelect('serviceItem.service', 'service')
       .addSelect(

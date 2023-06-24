@@ -11,6 +11,7 @@ import { ConfirmContractDeposit } from './dto';
 import { RequestContractDto, UpdateContractStatusDto } from './dto';
 import { CheckoutStripeResponse } from '@/main/shared/stripe/interface';
 import { DepositContractDto } from '@/main/shared/stripe/dto';
+import { ResponseMessageBase } from '@/base/interface';
 
 @Auth(['Roles'])
 @Resolver()
@@ -36,7 +37,7 @@ export class ContractResolver {
     return this.contractService.getMyContracts(query, ctx.currentUser);
   }
 
-  @Mutation(() => IContract)
+  @Mutation(() => ResponseMessageBase)
   requestCreateContract(
     @Args('input') input: RequestContractDto,
     @GetContext() ctx: Context,
@@ -69,5 +70,10 @@ export class ContractResolver {
       input,
       ctx.currentUser,
     );
+  }
+
+  @Query(() => ResponseMessageBase, { name: 'generatePDF' })
+  generatePDF() {
+    return this.contractService.generatePDF();
   }
 }

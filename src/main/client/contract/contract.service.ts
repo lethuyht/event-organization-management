@@ -26,6 +26,9 @@ import {
   UpdateContractStatusDto,
 } from './dto';
 import { DepositContractDto } from '@/main/shared/stripe/dto';
+import puppeteer from 'puppeteer';
+import { ContractTemplate } from '@/main/shared/contract/contract.template';
+import { messageKey } from '@/i18n';
 
 @Injectable()
 export class ContractService {
@@ -126,7 +129,7 @@ export class ContractService {
       .execute();
 
     await Contract.save(contract);
-    return contract;
+    return { message: messageKey.BASE.SUCCESSFULLY, success: true };
   }
 
   async confirmContractDeposit(input: ConfirmContractDeposit, user: User) {
@@ -232,5 +235,21 @@ export class ContractService {
       rest,
       user,
     );
+  }
+
+  async generatePDF() {
+    const browser = await puppeteer.launch({
+      headless: true,
+    });
+    const page = await browser.newPage();
+    await page.setContent(ContractTemplate, { waitUntil: 'domcontentloaded' });
+    await page.emulateMediaType('screen');
+    const buffer = await page.pdf({
+      path: 'contract.pdf',
+      format: 'A4',
+    });
+    await browser.close();
+
+    console.log(buffer);
   }
 }

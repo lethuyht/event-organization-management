@@ -6,10 +6,7 @@ import { Cart } from '@/db/entities/Cart';
 import { messageKey } from '@/i18n';
 import { User } from '@/db/entities/User';
 import { GraphQLResolveInfo } from 'graphql';
-import { CONTRACT_STATUS, Contract } from '@/db/entities/Contract';
-import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
-import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem';
-import { ContractEvent } from '@/db/entities/ContractEvent';
+import { CONTRACT_STATUS } from '@/db/entities/Contract';
 
 @Injectable()
 export class CartService {

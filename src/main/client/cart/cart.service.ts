@@ -88,7 +88,7 @@ export class CartService {
             THEN TRUE
             ELSE FALSE
         END`,
-        'cartItem_is_available',
+        'CartItem_is_available',
       )
       .where({ userId })
       .getOne();

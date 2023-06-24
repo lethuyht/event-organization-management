@@ -96,7 +96,7 @@ export class Contract extends CustomBaseEntity {
   @Column({ type: 'jsonb', default: {} })
   details: ContractDetail;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   fileUrl: string;
 

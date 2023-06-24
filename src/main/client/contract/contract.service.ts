@@ -1,28 +1,35 @@
+import { attachFilters } from '@/common/base/attachQueryFilter';
+import {
+  createFilterQueryBuilder,
+  getPaginationResponse,
+} from '@/common/base/getPaginationResponse';
+import { QUERY_OPERATOR, ROLE } from '@/common/constant';
+import { QueryFilterDto } from '@/common/dtos/queryFilter';
+import { CartItem } from '@/db/entities/CartItem';
 import {
   CONTRACT_STATUS,
   CONTRACT_TYPE,
   Contract,
 } from '@/db/entities/Contract';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { GraphQLResolveInfo } from 'graphql';
-import { ContractQueryCommand } from './command/ContractQuery.query';
-import { QueryFilterDto } from '@/common/dtos/queryFilter';
-import {
-  createFilterQueryBuilder,
-  getPaginationResponse,
-} from '@/common/base/getPaginationResponse';
+import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
 import { User } from '@/db/entities/User';
-import { attachFilters } from '@/common/base/attachQueryFilter';
-import { QUERY_OPERATOR } from '@/common/constant';
-import { RequestContractDto } from './dto';
-import { CartItem } from '@/db/entities/CartItem';
+import { StripeService } from '@/main/shared/stripe/stripe.service';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import dayjs from 'dayjs';
+import { GraphQLResolveInfo } from 'graphql';
 import _ from 'lodash';
 import { ValidateCartItem } from '../cart/command/validateCartItem.command';
-import dayjs from 'dayjs';
-import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
+import { ContractQueryCommand } from './command/ContractQuery.query';
+import {
+  ConfirmContractDeposit,
+  RequestContractDto,
+  UpdateContractStatusDto,
+} from './dto';
+import { DepositContractDto } from '@/main/shared/stripe/dto';
 
 @Injectable()
 export class ContractService {
+  constructor(private stripeService: StripeService) {}
   async getOne(id: string, info: GraphQLResolveInfo) {
     const relations = info ? Contract.getRelations(info) : [];
 
@@ -47,68 +54,65 @@ export class ContractService {
   }
 
   async requestCreateContract(input: RequestContractDto, user: User) {
-    const { cartItemIds } = input;
+    const { cartItemIds, details: detailInput } = input;
+
+    if (
+      detailInput?.customerInfo?.type === 'company' &&
+      !detailInput?.customerInfo?.representative
+    ) {
+      throw new BadRequestException(
+        'Bạn phải nhập người đại diện của công ty nếu muốn tạo hợp đồng đối với doanh nghiệp',
+      );
+    }
 
     const cartItems = await CartItem.createQueryBuilder()
       .leftJoinAndSelect('CartItem.serviceItem', 'ServiceItem')
       .whereInIds(cartItemIds)
       .getMany();
 
-    const groupByDateHiredDate = _.groupBy(cartItems, 'hireDate');
-    const groupByDateHiredEndDate = _.groupBy(cartItems, 'hireEndDate');
-
-    if (
-      dayjs(Object.keys(groupByDateHiredDate)[0]).isBefore(dayjs(new Date()))
-    ) {
-      throw new BadRequestException(
-        'Không thể tạo hợp đồng có ngày thuê trước thời điểm hiện tại',
-      );
-    }
-    if (
-      Object.keys(groupByDateHiredDate).length > 1 ||
-      Object.keys(groupByDateHiredEndDate).length > 1
-    ) {
-      throw new BadRequestException(
-        'Không thể tạo hợp đồng chung cho các dịch vụ có ngày thuê hoặc ngày trả khác nhau.',
-      );
-    }
-
     const groupByServiceItemId = _.groupBy(cartItems, 'serviceItemId');
 
     let totalPrice = 0;
-    let startDate;
-    let endDate;
+
+    const startContractDate = dayjs(
+      Math.min(...cartItems.map((el) => dayjs(el.hireDate).unix())) * 1000,
+    ).format();
+
+    const endContractDate = dayjs(
+      Math.max(...cartItems.map((el) => dayjs(el.hireEndDate).unix())) * 1000,
+    ).format();
 
     const contractServiceItems: Partial<ContractServiceItem>[] = [];
 
     for (const [index, serviceItem] of Object.entries(groupByServiceItemId)) {
-      startDate = serviceItem[0].hireDate;
-      endDate = serviceItem[0].hireEndDate;
-      const priceService = serviceItem[0]?.serviceItem?.price || 0;
-      const totalAmount = serviceItem.reduce(
-        (total, cur) => total + cur.amount,
-        0,
-      );
+      for (const item of serviceItem) {
+        totalPrice +=
+          item.amount *
+          (item.serviceItem?.price || 0) *
+          dayjs(item.hireEndDate).diff(item.hireDate, 'day');
 
-      await ValidateCartItem.availableServiceItemValidate({
-        serviceItemId: index,
-        amount: totalAmount,
-        startDate,
-        endDate,
-      });
+        await ValidateCartItem.availableServiceItemValidate({
+          serviceItemId: index,
+          amount: item.amount,
+          startDate: item.hireDate,
+          endDate: item.hireEndDate,
+        });
 
-      totalPrice +=
-        totalAmount * dayjs(endDate).diff(startDate, 'day') * priceService;
-      contractServiceItems.push({ serviceItemId: index, amount: totalAmount });
+        contractServiceItems.push({
+          serviceItemId: index,
+          amount: item.amount,
+          hireDate: item.hireDate,
+          hireEndDate: item.hireEndDate,
+        });
+      }
     }
 
-    const details = { name: 'Oke' } as unknown as JSON;
-
+    const details = detailInput;
     const contract = Contract.create({
       userId: user.id,
       type: CONTRACT_TYPE.Service,
-      hireDate: startDate,
-      hireEndDate: endDate,
+      hireDate: startContractDate,
+      hireEndDate: endContractDate,
       totalPrice,
       address: input.address,
       details,
@@ -116,6 +120,117 @@ export class ContractService {
       contractServiceItems,
     });
 
-    return await Contract.save(contract);
+    await CartItem.createQueryBuilder()
+      .delete()
+      .whereInIds(cartItemIds)
+      .execute();
+
+    await Contract.save(contract);
+    return contract;
+  }
+
+  async confirmContractDeposit(input: ConfirmContractDeposit, user: User) {
+    const currentUser = await User.findOne({
+      where: { id: user.id },
+      relations: ['role'],
+    });
+
+    const { contractId, isApproved } = input;
+    const contract = await ContractQueryCommand.getOneById(
+      contractId,
+      true,
+      [],
+    );
+
+    if (contract.status !== CONTRACT_STATUS.DepositPaid) {
+      throw new BadRequestException(
+        'Trạng thái hợp đồng không hợp lệ. Vui lòng thực hiện hoạt động khác',
+      );
+    }
+
+    if (
+      contract.userId !== currentUser.id &&
+      currentUser.role.name !== ROLE.Admin
+    ) {
+      throw new BadRequestException(
+        'Bạn không có quyền chỉnh sửa trạng thái của hợp đồng',
+      );
+    }
+
+    switch (currentUser.role.name) {
+      case ROLE.Admin:
+        contract.status = CONTRACT_STATUS.InProgress;
+        if (!isApproved) {
+          contract.status = CONTRACT_STATUS.AdminCancel;
+          await this.stripeService.handleRefundContractDeposit(contract);
+        }
+
+        break;
+      default:
+        if (!isApproved) {
+          contract.status = CONTRACT_STATUS.Cancel;
+        }
+    }
+
+    return Contract.save(contract);
+  }
+
+  async updateStatusContract(input: UpdateContractStatusDto) {
+    const contract = await ContractQueryCommand.getOneById(
+      input.contractId,
+      true,
+      [],
+    );
+
+    switch (input.status) {
+      case CONTRACT_STATUS.InProgress:
+        if (contract.status !== CONTRACT_STATUS.DepositPaid) {
+          throw new BadRequestException('Hợp đồng vẫn chưa đặt cọc!');
+        }
+
+        break;
+      case CONTRACT_STATUS.WaitingPaid:
+        if (dayjs(new Date()).isBefore(contract.hireEndDate)) {
+          throw new BadRequestException(
+            'Hạn thuê của hợp đồng vẫn chưa kết thúc. Vui lòng thử lại sau khi hợp đồng kết thúc',
+          );
+        }
+
+        break;
+
+      case CONTRACT_STATUS.Completed:
+        break;
+    }
+
+    contract.status = input.status;
+    return Contract.save(contract);
+  }
+
+  async checkoutRemainBillingContract(input: DepositContractDto, user: User) {
+    const { contractId, ...rest } = input;
+    const contract = await Contract.findOne({
+      where: { id: contractId },
+      relations: ['contractServiceItems'],
+    });
+
+    if (!contract) {
+      throw new BadRequestException('Hợp đồng không tồn tại');
+    }
+
+    if (contract.status !== CONTRACT_STATUS.WaitingPaid) {
+      throw new BadRequestException(
+        'Trạng thái của hợp đồng không hợp lệ. Vui lòng thực hiện hành động này sau khi hợp đồng có hiệu lực',
+      );
+    }
+
+    if (!contract.paymentIntentId) {
+      throw new BadRequestException('Hợp đồng chưa được đặt cọc');
+    }
+
+    return await this.stripeService.checkoutRemainBillingContract(
+      contract,
+      rest,
+      user,
+    );
   }
 }

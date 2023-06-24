@@ -1,14 +1,13 @@
 import { CustomBaseEntity } from '@/common/base/baseEntity';
+import { getJoinRelation } from '@/providers/selectionUtils';
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import GraphQLJSON from 'graphql-type-json';
+import { GraphQLResolveInfo } from 'graphql';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ServiceItem } from './ServiceItem';
-import { GraphQLResolveInfo } from 'graphql';
-import { getJoinRelation } from '@/providers/selectionUtils';
 
 export enum ServiceType {
   Device = 'Device',
-  HumanResource = 'Human_Resource',
+  HumanResource = 'HumanResource',
 }
 
 @ObjectType({ isAbstract: true })
@@ -18,7 +17,7 @@ export class Service extends CustomBaseEntity {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Field(() => [String])
+  @Field(() => [String], { nullable: true })
   @Column({ type: 'text', array: true, nullable: true, default: [] })
   images: string[];
 
@@ -33,6 +32,14 @@ export class Service extends CustomBaseEntity {
   @Field(() => ServiceType)
   @Column({ type: 'enum', enum: ServiceType })
   type: ServiceType;
+
+  @Field({ nullable: true })
+  @Column()
+  detail: string;
+
+  @Field(() => Boolean)
+  @Column()
+  isPublished: boolean;
 
   @Field(() => [ServiceItem], { nullable: true })
   @OneToMany(() => ServiceItem, (serviceItem) => serviceItem.service, {

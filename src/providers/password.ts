@@ -19,7 +19,7 @@ export class PasswordUtil {
     const isMatched = await bcryptjs.compare(password, hash);
 
     if (!isMatched && throwErrorIfNotMatch) {
-      throw new BadRequestException('Email or password is incorrect.');
+      throw new BadRequestException('Tên đăng nhập hoặc mật khẩu không đúng.');
     }
   }
 }

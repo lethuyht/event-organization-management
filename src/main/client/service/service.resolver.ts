@@ -4,7 +4,7 @@ import { Auth } from '@/decorators/auth.decorator';
 import { Roles } from '@/decorators/roles.decorator';
 import { Args, Info, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { GraphQLResolveInfo } from 'graphql';
-import { UpsertServiceDto } from './dto';
+import { PublishServiceDto, UpsertServiceDto } from './dto';
 import { IService, IServices } from './interface';
 import { ServiceService } from './service.service';
 
@@ -15,8 +15,11 @@ export class ServiceResolver {
   @Roles(ROLE.Admin)
   @Auth(['Roles'])
   @Mutation(() => IService, { name: 'upsertService' })
-  upsertService(@Args('input') input: UpsertServiceDto) {
-    return this.service.upsertService(input);
+  upsertService(
+    @Args('input') input: UpsertServiceDto,
+    @Info() info: GraphQLResolveInfo,
+  ) {
+    return this.service.upsertService(input, info);
   }
 
   @Query(() => IServices)
@@ -30,5 +33,10 @@ export class ServiceResolver {
   @Query(() => IService)
   getService(@Args('id') id: string, @Info() info: GraphQLResolveInfo) {
     return this.service.getService(id, info);
+  }
+
+  @Mutation(() => IService)
+  publishService(@Args('input') input: PublishServiceDto) {
+    return this.service.publishService(input);
   }
 }

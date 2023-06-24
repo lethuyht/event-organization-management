@@ -5,11 +5,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Service } from './Service';
 import { GraphQLResolveInfo } from 'graphql';
 import { getJoinRelation } from '@/providers/selectionUtils';
+import { EventServiceItem } from './EventServiceItem';
 
 @ObjectType({ isAbstract: true })
 @Entity('service_item')
@@ -22,21 +24,25 @@ export class ServiceItem extends CustomBaseEntity {
   @Column()
   name: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   description: string;
 
-  @Field(() => Float)
+  @Field(() => Float, { nullable: true })
   @Column()
   price: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   totalQuantity: number;
 
   @Field(() => ID)
   @Column()
   serviceId: string;
+
+  @Field(() => Boolean)
+  @Column()
+  isPublished: boolean;
 
   @Field(() => Service)
   @ManyToOne(() => Service, {
@@ -45,6 +51,14 @@ export class ServiceItem extends CustomBaseEntity {
   })
   @JoinColumn({ name: 'service_id' })
   service: Service;
+
+  @Field(() => [String])
+  @Column({ type: 'text', array: true, nullable: true, default: [] })
+  images: string[];
+
+  @Field(() => [EventServiceItem], { nullable: true })
+  @OneToMany(() => EventServiceItem, (et) => et.serviceItem)
+  eventServiceItems: EventServiceItem[];
 
   static getRelations(
     info: GraphQLResolveInfo,

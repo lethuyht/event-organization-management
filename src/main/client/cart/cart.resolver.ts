@@ -7,7 +7,6 @@ import { GetCartComment } from './command/getCartQuery.command';
 import { GraphQLResolveInfo } from 'graphql';
 import { Cart } from '@/db/entities/Cart';
 import { AddItemToCartDto } from './dto';
-import { RefreshResponse } from '../auth/interface';
 import { ResponseMessageBase } from '@/base/interface';
 
 @Resolver()
@@ -20,8 +19,8 @@ export class CartResolver {
     @GetContext() { currentUser }: Context,
     @Info() info: GraphQLResolveInfo,
   ) {
-    const relations = info ? Cart.getRelations(info) : [];
-    return GetCartComment.getCartByUserId(currentUser.id, true, relations);
+    // const relations = info ? Cart.getRelations(info) : [];
+    return this.cartService.getMyCart(currentUser.id, info);
   }
 
   @Mutation(() => ResponseMessageBase, { name: 'addItemToCart' })
@@ -30,5 +29,10 @@ export class CartResolver {
     @GetContext() ctx: Context,
   ) {
     return this.cartService.addItemToCart(input, ctx.currentUser.id);
+  }
+
+  @Mutation(() => ResponseMessageBase, { name: 'removeCartItem' })
+  removeCartItem(@Args('cartItemId') id: string, @GetContext() ctx: Context) {
+    return this.cartService.removeCartItem(id, ctx.currentUser);
   }
 }

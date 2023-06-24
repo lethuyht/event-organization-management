@@ -38,7 +38,11 @@ export class Cart extends CustomBaseEntity {
     withPagination?: boolean,
     forceInclude?: string[],
   ): string[] {
-    const fields = [['cartItems'], ['cartItems', 'serviceItem']];
+    const fields = [
+      ['cartItems'],
+      ['cartItems', 'serviceItem'],
+      ['cartItems', 'serviceItem', 'service'],
+    ];
     return getJoinRelation(info, fields, withPagination, forceInclude);
   }
 }

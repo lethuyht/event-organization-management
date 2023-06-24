@@ -7,7 +7,10 @@ import { Roles } from '@/decorators/roles.decorator';
 import { Auth } from '@/decorators/auth.decorator';
 import { ROLE } from '@/common/constant';
 import { Context, GetContext } from '@/decorators/user.decorator';
-import { RequestContractDto } from './dto';
+import { ConfirmContractDeposit } from './dto';
+import { RequestContractDto, UpdateContractStatusDto } from './dto';
+import { CheckoutStripeResponse } from '@/main/shared/stripe/interface';
+import { DepositContractDto } from '@/main/shared/stripe/dto';
 
 @Auth(['Roles'])
 @Resolver()
@@ -39,5 +42,32 @@ export class ContractResolver {
     @GetContext() ctx: Context,
   ) {
     return this.contractService.requestCreateContract(input, ctx.currentUser);
+  }
+
+  @Mutation(() => IContract)
+  confirmContractDeposit(
+    @Args('input') input: ConfirmContractDeposit,
+    @GetContext() ctx: Context,
+  ) {
+    return this.contractService.confirmContractDeposit(input, ctx.currentUser);
+  }
+
+  @Roles(ROLE.Admin)
+  @Mutation(() => IContract)
+  updateStatusContract(@Args('input') input: UpdateContractStatusDto) {
+    return this.contractService.updateStatusContract(input);
+  }
+
+  @Query(() => CheckoutStripeResponse, {
+    name: 'checkoutRemainBillingContract',
+  })
+  checkoutRemainBillingContract(
+    @Args('input') input: DepositContractDto,
+    @GetContext() ctx: Context,
+  ) {
+    return this.contractService.checkoutRemainBillingContract(
+      input,
+      ctx.currentUser,
+    );
   }
 }

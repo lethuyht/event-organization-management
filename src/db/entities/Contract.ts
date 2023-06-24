@@ -7,12 +7,14 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './User';
 import { ContractServiceItem } from './ContractServiceItem';
 import { GraphQLResolveInfo } from 'graphql';
 import { getJoinRelation } from '@/providers/selectionUtils';
+import { ContractEvent } from './ContractEvent';
 
 export enum CONTRACT_TYPE {
   Event = 'Event',
@@ -21,10 +23,50 @@ export enum CONTRACT_TYPE {
 
 export enum CONTRACT_STATUS {
   Draft = 'Draft',
-  DepositPaid = 'Deposit_paid',
-  InProgress = 'In_progress',
-  WaitingPaid = 'Waiting_paid',
+  DepositPaid = 'DepositPaid',
+  InProgress = 'InProgress',
+  WaitingPaid = 'WaitingPaid',
   Completed = 'Completed',
+  Cancel = 'Cancel',
+  AdminCancel = 'AdminCancel',
+}
+
+@ObjectType({ isAbstract: true })
+export class CustomerInfo {
+  @Field()
+  @Column()
+  type: 'company' | 'person';
+
+  @Field()
+  @Column()
+  name: string;
+
+  @Field()
+  @Column()
+  address: string;
+
+  @Field({ nullable: true })
+  @Column()
+  representative: string;
+
+  @Field()
+  @Column()
+  phoneNumber: string;
+}
+
+@ObjectType({ isAbstract: true })
+export class ContractDetail {
+  @Field()
+  @Column()
+  contractName: string;
+
+  @Field(() => Date, { nullable: true, defaultValue: new Date() })
+  @Column()
+  contractCreatedDate: Date;
+
+  @Field(() => CustomerInfo)
+  @Column()
+  customerInfo: CustomerInfo;
 }
 
 @ObjectType({ isAbstract: true })
@@ -50,9 +92,9 @@ export class Contract extends CustomBaseEntity {
   @Column()
   address: string;
 
-  @Field(() => GraphQLJSON)
-  @Column({ type: 'jsonb' })
-  details: JSON;
+  @Field(() => ContractDetail)
+  @Column({ type: 'jsonb', default: {} })
+  details: ContractDetail;
 
   @Field()
   @Column()
@@ -74,10 +116,18 @@ export class Contract extends CustomBaseEntity {
   @Column()
   userId: string;
 
+  @Field()
+  @Column()
+  paymentIntentId: string;
+
   @Field(() => User)
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @Field(() => ContractEvent, { nullable: true })
+  @OneToOne(() => ContractEvent, (ct) => ct.contract, { cascade: true })
+  contractEvent: ContractEvent;
 
   @Field(() => [ContractServiceItem])
   @OneToMany(
@@ -96,6 +146,7 @@ export class Contract extends CustomBaseEntity {
       ['user'],
       ['contractServiceItems'],
       ['contractServiceItems', 'serviceItem'],
+      ['contractEventRequest'],
     ];
     return getJoinRelation(info, fields, withPagination, forceInclude);
   }

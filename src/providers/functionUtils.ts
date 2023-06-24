@@ -83,7 +83,7 @@ export const uploadFileToS3 = async (
   const key = `${pathType}/${addTimeToKey ? `${Date.now()}-` : ''}${fileName}`;
   const uploadData = await S3.upload(data, key, fileType);
 
-  return uploadData['Key'];
+  return uploadData;
 };
 
 export const getFilePathsFromFolder = (dir: string) => {

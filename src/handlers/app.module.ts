@@ -2,6 +2,7 @@ import { configuration } from '@/config';
 import { ClientModule } from '@/main/client/client.module';
 import { DatabaseModule } from '@/modules/database.module';
 import { I18n_Module } from '@/modules/i18n.module';
+import { StripeHookModule } from '@/modules/stripe.module';
 import { JwtStrategy } from '@/providers/strategies/jwt.strategy';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
@@ -11,6 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
     DatabaseModule,
     I18n_Module,
     ClientModule,
+    StripeHookModule,
     JwtModule.register({
       secret: configuration.jwt.secretKey,
       signOptions: { expiresIn: configuration.jwt.expiredIn },

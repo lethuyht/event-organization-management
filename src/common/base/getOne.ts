@@ -1,7 +1,7 @@
-import { GraphQLResolveInfo } from 'graphql';
-import { CustomBaseEntity } from './baseEntity';
-import { getRepository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { GraphQLResolveInfo } from 'graphql';
+import { getManager } from 'typeorm';
+import { CustomBaseEntity } from './baseEntity';
 
 export const getOneBase = async (
   entity: typeof CustomBaseEntity,
@@ -9,10 +9,11 @@ export const getOneBase = async (
   throwErrorIfNotExist = true,
   info?: GraphQLResolveInfo,
   vietnameseEntityName?: string,
+  transaction = getManager(),
 ) => {
   const relations = info ? entity.getRelations(info) : [];
 
-  const result = await getRepository(entity).findOne({
+  const result = await transaction.getRepository(entity).findOne({
     where: {
       id,
     },
@@ -26,4 +27,5 @@ export const getOneBase = async (
         : `${entity.name} not found.`,
     );
   }
+  return result;
 };

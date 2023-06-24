@@ -48,6 +48,7 @@
     "apollo-server-fastify": "^2.9.15",
     "bcryptjs": "2.4.3",
     "body-parser": "^1.20.0",
+    "chromium": "^3.0.3",
     "class-transformer": "^0.2.3",
     "class-validator": "^0.13.1",
     "cron": "^2.3.0",

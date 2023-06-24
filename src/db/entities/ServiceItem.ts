@@ -52,7 +52,7 @@ export class ServiceItem extends CustomBaseEntity {
   @JoinColumn({ name: 'service_id' })
   service: Service;
 
-  @Field(() => [String])
+  @Field(() => [String],{ nullable: true })
   @Column({ type: 'text', array: true, nullable: true, default: [] })
   images: string[];
 

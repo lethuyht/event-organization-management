@@ -42,6 +42,10 @@ export class CartItem extends CustomBaseEntity {
   @JoinColumn({ name: 'cart_id' })
   cart: Cart;
 
+  @Field({ defaultValue: true })
+  @Column({ select: false, nullable: true, insert: false, update: false })
+  isAvailable: boolean;
+
   @Field(() => ServiceItem)
   @ManyToOne(() => ServiceItem)
   @JoinColumn({ name: 'service_item_id' })

@@ -19,8 +19,8 @@ export class CartResolver {
     @GetContext() { currentUser }: Context,
     @Info() info: GraphQLResolveInfo,
   ) {
-    const relations = info ? Cart.getRelations(info) : [];
-    return GetCartComment.getCartByUserId(currentUser.id, true, relations);
+    // const relations = info ? Cart.getRelations(info) : [];
+    return this.cartService.getMyCart(currentUser.id, info);
   }
 
   @Mutation(() => ResponseMessageBase, { name: 'addItemToCart' })

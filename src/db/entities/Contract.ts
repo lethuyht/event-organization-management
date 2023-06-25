@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { User } from './User';
 import { ContractServiceItem } from './ContractServiceItem';
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql';
 import { getJoinRelation } from '@/providers/selectionUtils';
 import { ContractEvent } from './ContractEvent';
 
@@ -30,6 +30,20 @@ export enum CONTRACT_STATUS {
   Cancel = 'Cancel',
   AdminCancel = 'AdminCancel',
 }
+
+export const DateScalar = new GraphQLScalarType({
+  name: 'Date',
+  description: 'Accept value as time stamp with timezone in string format',
+  parseValue(value) {
+    return value;
+  },
+  serialize(value) {
+    if (typeof value === 'string') {
+      return new Date(value);
+    }
+    return value;
+  },
+});
 
 @ObjectType({ isAbstract: true })
 export class CustomerInfo {
@@ -60,7 +74,7 @@ export class ContractDetail {
   @Column()
   contractName: string;
 
-  @Field(() => Date, { nullable: true, defaultValue: new Date() })
+  @Field(() => DateScalar)
   @Column()
   contractCreatedDate: Date;
 
@@ -116,7 +130,7 @@ export class Contract extends CustomBaseEntity {
   @Column()
   userId: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   paymentIntentId: string;
 
@@ -146,6 +160,7 @@ export class Contract extends CustomBaseEntity {
       ['user'],
       ['contractServiceItems'],
       ['contractServiceItems', 'serviceItem'],
+      ['contractServiceItems', 'serviceItem', 'service'],
       ['contractEventRequest'],
     ];
     return getJoinRelation(info, fields, withPagination, forceInclude);

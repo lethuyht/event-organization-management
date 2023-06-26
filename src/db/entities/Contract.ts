@@ -2,6 +2,7 @@ import { CustomBaseEntity } from '@/common/base/baseEntity';
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
 import {
+  BeforeInsert,
   Column,
   Entity,
   JoinColumn,
@@ -15,6 +16,7 @@ import { ContractServiceItem } from './ContractServiceItem';
 import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql';
 import { getJoinRelation } from '@/providers/selectionUtils';
 import { ContractEvent } from './ContractEvent';
+import { generateContractCode } from '@/providers/functionUtils';
 
 export enum CONTRACT_TYPE {
   Event = 'Event',
@@ -118,6 +120,10 @@ export class Contract extends CustomBaseEntity {
   @Column()
   hireEndDate: Date;
 
+  @Field({ nullable: true })
+  @Column()
+  code: string;
+
   @Field(() => CONTRACT_STATUS, { defaultValue: CONTRACT_STATUS.Draft })
   @Column({
     type: 'enum',
@@ -150,6 +156,11 @@ export class Contract extends CustomBaseEntity {
     { cascade: true },
   )
   contractServiceItems: ContractServiceItem[];
+
+  @BeforeInsert()
+  generateContractCode() {
+    this.code = generateContractCode();
+  }
 
   static getRelations(
     info: GraphQLResolveInfo,

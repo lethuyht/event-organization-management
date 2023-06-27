@@ -115,6 +115,27 @@ export class StripeService {
 
         try {
           const date = dayjs.tz(`${contract.hireDate}`, TIMEZONE).format();
+          const remindDate = dayjs
+            .tz(`${contract.hireDate}`, TIMEZONE)
+            .subtract(3, 'day')
+            .format();
+
+          const remindJob = new CronJob(
+            new Date(remindDate),
+            async () => {
+              const cronContract = await Contract.findOne({ id: contract.id });
+
+              // if (cronContract.status === CONTRACT_STATUS.InProgress) {
+              //   await this.emailService.sendEmail({
+              //     receiverEmail: configuration.smtpService.from,
+              //     subject: `${cronContract.code} is waiting approved!`,
+              //     // html:
+              //   });
+              // }
+            },
+            null,
+            true,
+          );
 
           const job = new CronJob(
             new Date(date),
@@ -134,6 +155,11 @@ export class StripeService {
           this.scheduleRegister.addCronJob(
             `schedule-${date}-${contractId}`,
             job,
+          );
+
+          this.scheduleRegister.addCronJob(
+            `schedule-remind-${remindDate}-${contractId}`,
+            remindJob,
           );
         } catch (error) {
           console.log(

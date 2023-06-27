@@ -40,6 +40,10 @@ export class ServiceItem extends CustomBaseEntity {
   @Column()
   serviceId: string;
 
+  @Field(() => Boolean, { defaultValue: false })
+  @Column()
+  isUsed: boolean;
+
   @Field(() => Boolean)
   @Column()
   isPublished: boolean;
@@ -52,7 +56,7 @@ export class ServiceItem extends CustomBaseEntity {
   @JoinColumn({ name: 'service_id' })
   service: Service;
 
-  @Field(() => [String],{ nullable: true })
+  @Field(() => [String], { nullable: true })
   @Column({ type: 'text', array: true, nullable: true, default: [] })
   images: string[];
 

@@ -37,7 +37,7 @@ export class ContractResolver {
     return this.contractService.getMyContracts(query, ctx.currentUser);
   }
 
-  @Mutation(() => ResponseMessageBase)
+  @Mutation(() => IContract)
   requestCreateContract(
     @Args('input') input: RequestContractDto,
     @GetContext() ctx: Context,

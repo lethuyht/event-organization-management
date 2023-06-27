@@ -128,8 +128,7 @@ export class ContractService {
       .whereInIds(cartItemIds)
       .execute();
 
-    await Contract.save(contract);
-    return { message: messageKey.BASE.SUCCESSFULLY, success: true };
+    return await Contract.save(contract);
   }
 
   async confirmContractDeposit(input: ConfirmContractDeposit, user: User) {

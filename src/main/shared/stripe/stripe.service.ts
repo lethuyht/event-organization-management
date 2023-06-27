@@ -220,7 +220,7 @@ export class StripeService {
           productName: item.name,
           productSystemId: item.id,
           imageUrls: item.images ? [item.images[0]] : [],
-          description: `Deposit 30% of ${item.price}$`,
+          description: `Deposit 30% of ${item.price}VND`,
         });
 
         products[item.id] = {
@@ -236,7 +236,7 @@ export class StripeService {
 
         return {
           amount: products[serviceItemId].price * DEPOSIT_PERCENT,
-          currency: 'usd',
+          currency: 'vnd',
           product: products[serviceItemId].product.id,
           quantity: productItem.amount,
         };

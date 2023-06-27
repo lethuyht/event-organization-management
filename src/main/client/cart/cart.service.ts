@@ -73,20 +73,25 @@ export class CartService {
       .leftJoinAndSelect('ServiceItem.service', 'Service')
       .addSelect(
         `
-        CASE
-          WHEN ((SELECT COALESCE(SUM("contract_service_item"."amount"), 0)
-                  FROM "contract_service_item" LEFT JOIN "contract" ON "contract"."id" = "contract_service_item"."contract_id"
-                  WHERE "contract_service_item"."service_item_id" = "CartItem"."service_item_id" AND ("contract_service_item"."hire_date", "contract_service_item"."hire_end_date") OVERLAPS ("CartItem"."hire_date", "CartItem"."hire_end_date")
-                  AND "contract"."status" NOT IN ('${CONTRACT_STATUS.AdminCancel}', '${CONTRACT_STATUS.Cancel}'))
-              +
-                  (SELECT COALESCE(SUM("contract_event_service_item"."amount"), 0) FROM "contract_event_service_item" LEFT JOIN "contract_event" ON "contract_event"."id" = "contract_event_service_item"."contract_event_id"
-                  LEFT JOIN "contract" ON "contract"."id" = "contract_event"."contract_id"
-                  WHERE "contract_event_service_item"."service_item_id" = "CartItem"."service_item_id"
-                  AND ("contract"."hire_date", "contract"."hire_end_date") OVERLAPS ("CartItem"."hire_date", "CartItem"."hire_end_date")
-                  AND "contract"."status" NOT IN ('${CONTRACT_STATUS.AdminCancel}', '${CONTRACT_STATUS.Cancel}')))
-             + "CartItem"."amount" <= "ServiceItem"."total_quantity"
-            THEN TRUE
-            ELSE FALSE
+        CASE        
+            WHEN ("CartItem"."id" IS NOT NULL) THEN 
+              CASE            
+                  WHEN ((SELECT COALESCE(SUM("contract_service_item"."amount"), 0)
+                          FROM "contract_service_item" LEFT JOIN "contract" ON "contract"."id" = "contract_service_item"."contract_id"
+                          WHERE "contract_service_item"."service_item_id" = "CartItem"."service_item_id" AND ("contract_service_item"."hire_date", "contract_service_item"."hire_end_date") OVERLAPS ("CartItem"."hire_date", "CartItem"."hire_end_date")
+                          AND "contract"."status" NOT IN ('${CONTRACT_STATUS.AdminCancel}', '${CONTRACT_STATUS.Cancel}'))
+                      +
+                          (SELECT COALESCE(SUM("contract_event_service_item"."amount"), 0) FROM "contract_event_service_item" LEFT JOIN "contract_event" ON "contract_event"."id" = "contract_event_service_item"."contract_event_id"
+                          LEFT JOIN "contract" ON "contract"."id" = "contract_event"."contract_id"
+                          WHERE "contract_event_service_item"."service_item_id" = "CartItem"."service_item_id"
+                          AND ("contract"."hire_date", "contract"."hire_end_date") OVERLAPS ("CartItem"."hire_date", "CartItem"."hire_end_date")
+                          AND "contract"."status" NOT IN ('${CONTRACT_STATUS.AdminCancel}', '${CONTRACT_STATUS.Cancel}')))
+                    + "CartItem"."amount" <= "ServiceItem"."total_quantity"
+                    THEN TRUE
+                    ELSE FALSE
+                  END 
+            ELSE NULL         
+         
         END`,
         'CartItem_is_available',
       )

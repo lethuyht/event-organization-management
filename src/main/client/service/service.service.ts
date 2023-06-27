@@ -48,6 +48,17 @@ export class ServiceService {
   getServices(query: QueryFilterDto, info: GraphQLResolveInfo) {
     const builder = createFilterQueryBuilder(Service, query, info);
 
+    builder.addSelect(
+      `
+      CASE
+        WHEN (SELECT COUNT(*) FROM "service_item" WHERE "service_item"."service_id" = "Service"."id" AND "service_item"."is_used" = true) > 0
+      THEN TRUE
+      ELSE FALSE
+      END        
+    `,
+      'Service_is_used',
+    );
+
     return getPaginationResponse(builder, query);
   }
 

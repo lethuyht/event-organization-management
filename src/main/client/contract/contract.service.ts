@@ -29,6 +29,7 @@ import { DepositContractDto } from '@/main/shared/stripe/dto';
 import puppeteer from 'puppeteer';
 import { ContractTemplate } from '@/main/shared/contract/contract.template';
 import { messageKey } from '@/i18n';
+import { ServiceItem } from '@/db/entities/ServiceItem';
 
 @Injectable()
 export class ContractService {
@@ -122,6 +123,13 @@ export class ContractService {
       status: CONTRACT_STATUS.Draft,
       contractServiceItems,
     });
+
+    const serviceItemIds = contractServiceItems.map((el) => el.serviceItemId);
+
+    await ServiceItem.createQueryBuilder()
+      .update({ isUsed: true })
+      .whereInIds(serviceItemIds)
+      .execute();
 
     await CartItem.createQueryBuilder()
       .delete()

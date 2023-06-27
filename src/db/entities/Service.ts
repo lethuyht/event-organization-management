@@ -42,7 +42,7 @@ export class Service extends CustomBaseEntity {
   isPublished: boolean;
 
   @Field({ defaultValue: false })
-  @Column()
+  @Column({ select: false, nullable: true, insert: false, update: false })
   isUsed: boolean;
 
   @Field(() => [ServiceItem], { nullable: true })

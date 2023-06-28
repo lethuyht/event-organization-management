@@ -28,7 +28,6 @@ import {
 import { DepositContractDto } from '@/main/shared/stripe/dto';
 import puppeteer from 'puppeteer';
 import { ContractTemplate } from '@/main/shared/contract/contract.template';
-import { messageKey } from '@/i18n';
 import { ServiceItem } from '@/db/entities/ServiceItem';
 
 @Injectable()
@@ -169,15 +168,22 @@ export class ContractService {
 
     switch (currentUser.role.name) {
       case ROLE.Admin:
-        contract.status = CONTRACT_STATUS.InProgress;
         if (!isApproved) {
           contract.status = CONTRACT_STATUS.AdminCancel;
           await this.stripeService.handleRefundContractDeposit(contract);
+        } else {
+          contract.status = CONTRACT_STATUS.InProgress;
         }
 
         break;
       default:
         if (!isApproved) {
+          if (dayjs().isAfter(contract.hireDate)) {
+            throw new BadRequestException(
+              'Bạn không thể huỷ hợp đồng đã có hiệu lực',
+            );
+          }
+
           contract.status = CONTRACT_STATUS.Cancel;
         }
     }
@@ -192,13 +198,15 @@ export class ContractService {
       [],
     );
 
-    switch (input.status) {
-      case CONTRACT_STATUS.InProgress:
-        if (contract.status !== CONTRACT_STATUS.DepositPaid) {
-          throw new BadRequestException('Hợp đồng vẫn chưa đặt cọc!');
-        }
+    if (
+      ![CONTRACT_STATUS.WaitingPaid, CONTRACT_STATUS.Completed].includes(
+        input.status,
+      )
+    ) {
+      throw new BadRequestException('Trạng thái hợp đồng không hợp lệ');
+    }
 
-        break;
+    switch (input.status) {
       case CONTRACT_STATUS.WaitingPaid:
         if (dayjs(new Date()).isBefore(contract.hireEndDate)) {
           throw new BadRequestException(

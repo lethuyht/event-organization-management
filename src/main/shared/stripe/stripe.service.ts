@@ -2,7 +2,7 @@ import { DEPOSIT_PERCENT, TIMEZONE, WEBHOOK_TYPE } from '@/common/constant';
 import { configuration } from '@/config';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { WEBHOOK_EVENT_TYPE } from './command/constraint';
-import { RequestWithRawBody } from './interface';
+import { RequestWithRawBody, ServiceItemOfContract } from './interface';
 import { DepositContractDto } from './dto';
 
 import _ from 'lodash';
@@ -12,7 +12,11 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { StripeAdapter } from '@/service/stripe';
 import { User } from '@/db/entities/User';
-import { CONTRACT_STATUS, Contract } from '@/db/entities/Contract';
+import {
+  CONTRACT_STATUS,
+  CONTRACT_TYPE,
+  Contract,
+} from '@/db/entities/Contract';
 import { getManager } from 'typeorm';
 import { ServiceItem } from '@/db/entities/ServiceItem';
 import Stripe from 'stripe';
@@ -20,6 +24,9 @@ import Stripe from 'stripe';
 import { CronJob } from 'cron';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { EmailService } from '@/service/smtp/service';
+import { remindApprovedContract } from '@/service/smtp/email-templates/remindApprovedContract.template';
+import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
+import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -113,6 +120,35 @@ export class StripeService {
         contract.paymentIntentId = object.payment_intent as string;
         await trx.getRepository(Contract).save(contract);
 
+        let serviceItems: ServiceItemOfContract[];
+        if (contract.type === CONTRACT_TYPE.Service) {
+          const contractServiceItem = await ContractServiceItem.find({
+            where: { contractId: contract.id },
+            relations: ['serviceItem'],
+          });
+
+          serviceItems = contractServiceItem.map((el) => {
+            return {
+              amount: el.amount,
+              name: el.serviceItem.name,
+              price: el.serviceItem.price * el.amount,
+            };
+          });
+        } else {
+          const contractEventServiceItem = await ContractEventServiceItem.find({
+            where: { contractEvent: { contractId: contract.id } },
+            relations: ['contractEvent', 'serviceItem'],
+          });
+
+          serviceItems = contractEventServiceItem.map((el) => {
+            return {
+              amount: el.amount,
+              name: el.serviceItem.name,
+              price: el.serviceItem.price * el.amount,
+            };
+          });
+        }
+
         try {
           const date = dayjs.tz(`${contract.hireDate}`, TIMEZONE).format();
           const remindDate = dayjs
@@ -125,13 +161,32 @@ export class StripeService {
             async () => {
               const cronContract = await Contract.findOne({ id: contract.id });
 
-              // if (cronContract.status === CONTRACT_STATUS.InProgress) {
-              //   await this.emailService.sendEmail({
-              //     receiverEmail: configuration.smtpService.from,
-              //     subject: `${cronContract.code} is waiting approved!`,
-              //     // html:
-              //   });
-              // }
+              if (cronContract.status === CONTRACT_STATUS.DepositPaid) {
+                const template = remindApprovedContract;
+                const contractHTML = await this.emailService.renderHtml(
+                  template,
+                  {
+                    customerName: cronContract.details.contractName,
+                    contractCode: cronContract.code,
+                    emailTitle: 'Trạng thái hợp đồng',
+                    hireDate: dayjs(cronContract.hireDate).format(
+                      'DD/MM/YYYY HH:mm',
+                    ),
+                    hireEndDate: dayjs(cronContract.hireEndDate).format(
+                      'DD/MM/YYYY HH:mm',
+                    ),
+                    address: cronContract.address,
+                    totalPrice: cronContract.totalPrice,
+                    serviceItems,
+                  },
+                );
+
+                await this.emailService.sendEmail({
+                  receiverEmail: cronContract.details.contractName,
+                  subject: `${cronContract.code} is waiting approved!`,
+                  html: contractHTML,
+                });
+              }
             },
             null,
             true,

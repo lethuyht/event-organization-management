@@ -102,6 +102,7 @@ export class ContractService {
         });
 
         contractServiceItems.push({
+          price: item.serviceItem.price,
           serviceItemId: index,
           amount: item.amount,
           hireDate: item.hireDate,
@@ -228,7 +229,6 @@ export class ContractService {
     const { contractId, ...rest } = input;
     const contract = await Contract.findOne({
       where: { id: contractId },
-      relations: ['contractServiceItems'],
     });
 
     if (!contract) {

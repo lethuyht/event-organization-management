@@ -48,6 +48,7 @@ export class Event extends CustomBaseEntity {
     const fields = [
       ['eventServiceItems'],
       ['eventServiceItems', 'serviceItem'],
+      ['eventServiceItems', 'serviceItem', 'service'],
     ];
 
     return getJoinRelation(info, fields, withPagination, forceInclude);

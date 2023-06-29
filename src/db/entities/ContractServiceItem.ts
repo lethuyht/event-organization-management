@@ -31,6 +31,10 @@ export class ContractServiceItem extends CustomBaseEntity {
 
   @Field()
   @Column()
+  price: number;
+
+  @Field()
+  @Column()
   hireDate: Date;
 
   @Field()

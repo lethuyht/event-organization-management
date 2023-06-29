@@ -134,7 +134,7 @@ export class StripeAdapter {
     const lineItems = [];
     for (const item of items) {
       const price = await this.stripe.prices.create({
-        unit_amount: item.amount * 100,
+        unit_amount: item.amount,
         currency: item.currency,
         product: item.product,
       });

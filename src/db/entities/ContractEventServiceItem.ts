@@ -29,6 +29,10 @@ export class ContractEventServiceItem extends CustomBaseEntity {
   @Column()
   amount: number;
 
+  @Field()
+  @Column()
+  price: number;
+
   @Field(() => ContractEvent)
   @ManyToOne(() => ContractEvent)
   @JoinColumn({ name: 'contract_event_id' })

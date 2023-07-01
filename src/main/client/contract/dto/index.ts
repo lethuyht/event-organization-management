@@ -3,6 +3,7 @@ import { ContractDetail } from '../interface';
 import { CustomerInfoDto } from '@/main/shared/user/dto';
 import { Type } from 'class-transformer';
 import { CONTRACT_STATUS } from '@/db/entities/Contract';
+import { IsEnum } from 'class-validator';
 
 @InputType()
 export class RequestContractDto {

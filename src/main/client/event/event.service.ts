@@ -106,6 +106,7 @@ export class EventService {
       contractEventServiceItems.push({
         serviceItemId: item.id,
         amount: serviceItem.amount,
+        price: item.price,
       });
       totalPrice = totalPrice + serviceItem.amount * item.price;
     }

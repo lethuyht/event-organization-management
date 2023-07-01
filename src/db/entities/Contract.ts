@@ -2,6 +2,7 @@ import { CustomBaseEntity } from '@/common/base/baseEntity';
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
 import {
+  BeforeInsert,
   Column,
   Entity,
   JoinColumn,
@@ -12,9 +13,10 @@ import {
 } from 'typeorm';
 import { User } from './User';
 import { ContractServiceItem } from './ContractServiceItem';
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql';
 import { getJoinRelation } from '@/providers/selectionUtils';
 import { ContractEvent } from './ContractEvent';
+import { generateContractCode } from '@/providers/functionUtils';
 
 export enum CONTRACT_TYPE {
   Event = 'Event',
@@ -30,6 +32,20 @@ export enum CONTRACT_STATUS {
   Cancel = 'Cancel',
   AdminCancel = 'AdminCancel',
 }
+
+export const DateScalar = new GraphQLScalarType({
+  name: 'Date',
+  description: 'Accept value as time stamp with timezone in string format',
+  parseValue(value) {
+    return value;
+  },
+  serialize(value) {
+    if (typeof value === 'string') {
+      return new Date(value);
+    }
+    return value;
+  },
+});
 
 @ObjectType({ isAbstract: true })
 export class CustomerInfo {
@@ -60,7 +76,7 @@ export class ContractDetail {
   @Column()
   contractName: string;
 
-  @Field(() => Date, { nullable: true, defaultValue: new Date() })
+  @Field(() => DateScalar)
   @Column()
   contractCreatedDate: Date;
 
@@ -96,13 +112,17 @@ export class Contract extends CustomBaseEntity {
   @Column({ type: 'jsonb', default: {} })
   details: ContractDetail;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   fileUrl: string;
 
   @Field(() => Date)
   @Column()
   hireEndDate: Date;
+
+  @Field({ nullable: true })
+  @Column()
+  code: string;
 
   @Field(() => CONTRACT_STATUS, { defaultValue: CONTRACT_STATUS.Draft })
   @Column({
@@ -116,7 +136,7 @@ export class Contract extends CustomBaseEntity {
   @Column()
   userId: string;
 
-  @Field()
+  @Field({ nullable: true })
   @Column()
   paymentIntentId: string;
 
@@ -137,6 +157,11 @@ export class Contract extends CustomBaseEntity {
   )
   contractServiceItems: ContractServiceItem[];
 
+  @BeforeInsert()
+  generateContractCode() {
+    this.code = generateContractCode();
+  }
+
   static getRelations(
     info: GraphQLResolveInfo,
     withPagination?: boolean,
@@ -146,6 +171,7 @@ export class Contract extends CustomBaseEntity {
       ['user'],
       ['contractServiceItems'],
       ['contractServiceItems', 'serviceItem'],
+      ['contractServiceItems', 'serviceItem', 'service'],
       ['contractEventRequest'],
     ];
     return getJoinRelation(info, fields, withPagination, forceInclude);

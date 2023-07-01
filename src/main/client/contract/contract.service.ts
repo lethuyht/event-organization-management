@@ -26,6 +26,9 @@ import {
   UpdateContractStatusDto,
 } from './dto';
 import { DepositContractDto } from '@/main/shared/stripe/dto';
+import puppeteer from 'puppeteer';
+import { ContractTemplate } from '@/main/shared/contract/contract.template';
+import { ServiceItem } from '@/db/entities/ServiceItem';
 
 @Injectable()
 export class ContractService {
@@ -99,6 +102,7 @@ export class ContractService {
         });
 
         contractServiceItems.push({
+          price: item.serviceItem.price,
           serviceItemId: index,
           amount: item.amount,
           hireDate: item.hireDate,
@@ -120,13 +124,19 @@ export class ContractService {
       contractServiceItems,
     });
 
+    const serviceItemIds = contractServiceItems.map((el) => el.serviceItemId);
+
+    await ServiceItem.createQueryBuilder()
+      .update({ isUsed: true })
+      .whereInIds(serviceItemIds)
+      .execute();
+
     await CartItem.createQueryBuilder()
       .delete()
       .whereInIds(cartItemIds)
       .execute();
 
-    await Contract.save(contract);
-    return contract;
+    return await Contract.save(contract);
   }
 
   async confirmContractDeposit(input: ConfirmContractDeposit, user: User) {
@@ -159,15 +169,22 @@ export class ContractService {
 
     switch (currentUser.role.name) {
       case ROLE.Admin:
-        contract.status = CONTRACT_STATUS.InProgress;
         if (!isApproved) {
           contract.status = CONTRACT_STATUS.AdminCancel;
           await this.stripeService.handleRefundContractDeposit(contract);
+        } else {
+          contract.status = CONTRACT_STATUS.InProgress;
         }
 
         break;
       default:
         if (!isApproved) {
+          if (dayjs().isAfter(contract.hireDate)) {
+            throw new BadRequestException(
+              'Bạn không thể huỷ hợp đồng đã có hiệu lực',
+            );
+          }
+
           contract.status = CONTRACT_STATUS.Cancel;
         }
     }
@@ -182,13 +199,15 @@ export class ContractService {
       [],
     );
 
-    switch (input.status) {
-      case CONTRACT_STATUS.InProgress:
-        if (contract.status !== CONTRACT_STATUS.DepositPaid) {
-          throw new BadRequestException('Hợp đồng vẫn chưa đặt cọc!');
-        }
+    if (
+      ![CONTRACT_STATUS.WaitingPaid, CONTRACT_STATUS.Completed].includes(
+        input.status,
+      )
+    ) {
+      throw new BadRequestException('Trạng thái hợp đồng không hợp lệ');
+    }
 
-        break;
+    switch (input.status) {
       case CONTRACT_STATUS.WaitingPaid:
         if (dayjs(new Date()).isBefore(contract.hireEndDate)) {
           throw new BadRequestException(
@@ -210,7 +229,6 @@ export class ContractService {
     const { contractId, ...rest } = input;
     const contract = await Contract.findOne({
       where: { id: contractId },
-      relations: ['contractServiceItems'],
     });
 
     if (!contract) {
@@ -232,5 +250,22 @@ export class ContractService {
       rest,
       user,
     );
+  }
+
+  async generatePDF() {
+    const browser = await puppeteer.launch({
+      // headless: true,
+      args: ['--no-sandbox'],
+    });
+    const page = await browser.newPage();
+    await page.setContent(ContractTemplate, { waitUntil: 'domcontentloaded' });
+    await page.emulateMediaType('screen');
+    const buffer = await page.pdf({
+      path: 'contract.pdf',
+      format: 'A4',
+    });
+    await browser.close();
+
+    console.log(buffer);
   }
 }

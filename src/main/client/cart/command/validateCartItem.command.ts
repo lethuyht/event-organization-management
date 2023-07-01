@@ -93,5 +93,7 @@ export class ValidateCartItem {
         'Dịch vụ hiện không đủ số lượng. Vui lòng nhập số lượng phù hợp hoặc lựa chọn dịch vụ khác!.',
       );
     }
+
+    return serviceItem;
   }
 }

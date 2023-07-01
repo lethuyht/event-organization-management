@@ -41,6 +41,10 @@ export class Service extends CustomBaseEntity {
   @Column()
   isPublished: boolean;
 
+  @Field({ defaultValue: false })
+  @Column({ select: false, nullable: true, insert: false, update: false })
+  isUsed: boolean;
+
   @Field(() => [ServiceItem], { nullable: true })
   @OneToMany(() => ServiceItem, (serviceItem) => serviceItem.service, {
     cascade: true,

@@ -11,6 +11,7 @@ import { ConfirmContractDeposit } from './dto';
 import { RequestContractDto, UpdateContractStatusDto } from './dto';
 import { CheckoutStripeResponse } from '@/main/shared/stripe/interface';
 import { DepositContractDto } from '@/main/shared/stripe/dto';
+import { ResponseMessageBase } from '@/base/interface';
 
 @Auth(['Roles'])
 @Resolver()
@@ -69,5 +70,10 @@ export class ContractResolver {
       input,
       ctx.currentUser,
     );
+  }
+
+  @Query(() => ResponseMessageBase, { name: 'generatePDF' })
+  generatePDF() {
+    return this.contractService.generatePDF();
   }
 }

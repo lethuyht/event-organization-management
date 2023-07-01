@@ -23,6 +23,10 @@ export const getRandomToken = function () {
   return nanoid(64);
 };
 
+export const generateContractCode = function () {
+  return `HD-${randomCode().slice(0, -5)}`;
+};
+
 export const randomSpecialChar = function () {
   const specialCharacters = '#?!@$%^&*-';
   const index = Math.floor((specialCharacters.length - 1) * Math.random());

@@ -19,3 +19,11 @@ export class CheckoutStripeResponse {
   @Field()
   cancelUrl: string;
 }
+
+export interface ServiceItemOfContract {
+  id?: string;
+  images?: string[];
+  name: string;
+  amount: number;
+  price: number;
+}

@@ -18,7 +18,6 @@ import {
   Contract,
 } from '@/db/entities/Contract';
 import { getManager } from 'typeorm';
-import { ServiceItem } from '@/db/entities/ServiceItem';
 import Stripe from 'stripe';
 
 import { CronJob } from 'cron';
@@ -27,6 +26,8 @@ import { EmailService } from '@/service/smtp/service';
 import { remindApprovedContract } from '@/service/smtp/email-templates/remindApprovedContract.template';
 import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
 import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem';
+import { DepositTemplate } from '@/service/smtp/email-templates/depositSuccess.template';
+import { BillingRemainSuccessfully } from '@/service/smtp/email-templates/billingRemainSuccessfully.template';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -149,8 +150,65 @@ export class StripeService {
           });
         }
 
+        const customer = await User.findOne({ where: { id: contract.userId } });
+
+        if (contract.status === CONTRACT_STATUS.DepositPaid) {
+          const depositTemplate = await this.emailService.renderHtml(
+            DepositTemplate,
+            {
+              customerName: contract.details.contractName,
+              contractCode: contract.code,
+              phoneNumber: contract.details.customerInfo.phoneNumber,
+              emailTitle: 'Thanh toán thành công',
+              hireDate: dayjs(contract.hireDate).format('DD/MM/YYYY HH:mm'),
+              hireEndDate: dayjs(contract.hireEndDate).format(
+                'DD/MM/YYYY HH:mm',
+              ),
+              adminMail: configuration.smtpService.from,
+              address: contract.address,
+              totalPrice: contract.totalPrice * DEPOSIT_PERCENT,
+              serviceItems: serviceItems.map((item) => {
+                return { ...item, price: item.price * DEPOSIT_PERCENT };
+              }),
+            },
+          );
+
+          await this.emailService.sendEmail({
+            receiverEmail: customer.email,
+            subject: 'Deposit successfully',
+            html: depositTemplate,
+          });
+        } else {
+          const billingRemainTemplate = await this.emailService.renderHtml(
+            BillingRemainSuccessfully,
+            {
+              customerName: contract.details.contractName,
+              contractCode: contract.code,
+              phoneNumber: contract.details.customerInfo.phoneNumber,
+              emailTitle: 'Thanh toán thành công',
+              hireDate: dayjs(contract.hireDate).format('DD/MM/YYYY HH:mm'),
+              hireEndDate: dayjs(contract.hireEndDate).format(
+                'DD/MM/YYYY HH:mm',
+              ),
+              adminMail: configuration.smtpService.from,
+              address: contract.address,
+              totalPrice: contract.totalPrice * DEPOSIT_PERCENT,
+              serviceItems: serviceItems.map((item) => {
+                return { ...item, price: item.price * (1 - DEPOSIT_PERCENT) };
+              }),
+            },
+          );
+
+          await this.emailService.sendEmail({
+            receiverEmail: customer.email,
+            subject: 'Checkout remain billing successfully',
+            html: billingRemainTemplate,
+          });
+        }
+
         try {
           const date = dayjs.tz(`${contract.hireDate}`, TIMEZONE).format();
+
           const remindDate = dayjs
             .tz(`${contract.hireDate}`, TIMEZONE)
             .subtract(3, 'day')
@@ -169,6 +227,7 @@ export class StripeService {
                     customerName: cronContract.details.contractName,
                     contractCode: cronContract.code,
                     emailTitle: 'Trạng thái hợp đồng',
+                    phoneNumber: cronContract.details.customerInfo.phoneNumber,
                     hireDate: dayjs(cronContract.hireDate).format(
                       'DD/MM/YYYY HH:mm',
                     ),
@@ -182,7 +241,7 @@ export class StripeService {
                 );
 
                 await this.emailService.sendEmail({
-                  receiverEmail: cronContract.details.contractName,
+                  receiverEmail: 'thanhhoang280202@gmail.com',
                   subject: `${cronContract.code} is waiting approved!`,
                   html: contractHTML,
                 });

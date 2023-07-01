@@ -88,4 +88,23 @@ export class ServiceService {
     newService.serviceItems = serviceItems;
     return Service.save(newService);
   }
+
+  async deleteService(id: string) {
+    const service = await Service.createQueryBuilder()
+      .leftJoinAndSelect(`Service.serviceItems`, 'ServiceItem')
+      .where(`"Service"."id" = :id`, { id })
+      .getOne();
+
+    if (!service) {
+      throw new BadRequestException('Không tìm thấy dịch vụ!');
+    }
+
+    if (service.serviceItems.findIndex((item) => item.isUsed) >= 0) {
+      throw new BadRequestException('Không thể xoá dịch vụ đã sử dụng!');
+    }
+
+    await Service.delete({ id: service.id });
+
+    return { message: messageKey.BASE.SUCCESSFULLY, success: true };
+  }
 }

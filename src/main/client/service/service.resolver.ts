@@ -7,6 +7,7 @@ import { GraphQLResolveInfo } from 'graphql';
 import { PublishServiceDto, UpsertServiceDto } from './dto';
 import { IService, IServices } from './interface';
 import { ServiceService } from './service.service';
+import { ResponseMessageBase } from '@/base/interface';
 
 @Resolver()
 export class ServiceResolver {
@@ -28,6 +29,13 @@ export class ServiceResolver {
     @Info() info: GraphQLResolveInfo,
   ) {
     return this.service.getServices(query, info);
+  }
+
+  @Roles(ROLE.Admin)
+  @Auth(['Roles'])
+  @Mutation(() => ResponseMessageBase, { name: 'deleteService' })
+  deleteService(@Args('id') id: string) {
+    return this.service.deleteService(id);
   }
 
   @Query(() => IService)

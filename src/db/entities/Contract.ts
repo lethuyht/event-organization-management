@@ -172,7 +172,11 @@ export class Contract extends CustomBaseEntity {
       ['contractServiceItems'],
       ['contractServiceItems', 'serviceItem'],
       ['contractServiceItems', 'serviceItem', 'service'],
-      ['contractEventRequest'],
+      ['contractEvent'],
+      ['contractEvent', 'event'],
+      ['contractEvent', 'contractEventServiceItems'],
+      ['contractEvent', 'contractEventServiceItems', 'serviceItem'],
+      ['contractEvent', 'contractEventServiceItems', 'serviceItem', 'service'],
     ];
     return getJoinRelation(info, fields, withPagination, forceInclude);
   }

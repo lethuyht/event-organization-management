@@ -37,12 +37,12 @@ export class UserService {
 
     const user = await GetUserQuery.getOneById(id);
 
-    const updated = await User.merge(user, {
+    const updated = User.merge(user, {
       ...userUpdateInput,
       email: user.email,
     });
 
-    await updated.save();
+    await User.save(updated);
 
     return await GetUserQuery.getOneById(id, true, ['role']);
   }

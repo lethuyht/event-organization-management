@@ -7,7 +7,7 @@ const formatDateScalar = new GraphQLScalarType({
   description: 'Custom output date',
   serialize(value) {
     if (value instanceof Date) {
-      return dayjs(value).format('DD/MM/YYYY');
+      return dayjs(value).format('YYYY-MM-DD');
     }
     throw Error('GraphQL Date Scalar serializer expected a `Date` object');
   },

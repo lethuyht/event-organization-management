@@ -322,12 +322,18 @@ export class StripeService {
           relations: ['serviceItem'],
         });
 
-        for (const { amount, serviceItem, price } of contractServiceItems) {
+        for (const {
+          amount,
+          serviceItem,
+          price,
+          hireDate,
+          hireEndDate,
+        } of contractServiceItems) {
           serviceItems.push({
             name: serviceItem.name,
             id: serviceItem.id,
             amount,
-            price: price,
+            price: price * dayjs(hireEndDate).diff(hireDate, 'day'),
             images: serviceItem.images ? [serviceItem.images[0]] : [],
           });
         }
@@ -347,7 +353,9 @@ export class StripeService {
             name: serviceItem.name,
             id: serviceItem.id,
             amount,
-            price: price,
+            price:
+              price *
+              dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
             images: serviceItem.images ? [serviceItem.images[0]] : [],
           });
         }
@@ -409,12 +417,18 @@ export class StripeService {
           relations: ['serviceItem'],
         });
 
-        for (const { amount, serviceItem, price } of contractServiceItems) {
+        for (const {
+          amount,
+          serviceItem,
+          price,
+          hireDate,
+          hireEndDate,
+        } of contractServiceItems) {
           serviceItems.push({
             name: serviceItem.name,
             id: serviceItem.id,
             amount,
-            price: price,
+            price: price * dayjs(hireEndDate).diff(hireDate, 'day'),
             images: serviceItem.images ? [serviceItem.images[0]] : [],
           });
         }
@@ -434,7 +448,9 @@ export class StripeService {
             name: serviceItem.name,
             id: serviceItem.id,
             amount,
-            price: price,
+            price:
+              price *
+              dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
             images: serviceItem.images ? [serviceItem.images[0]] : [],
           });
         }

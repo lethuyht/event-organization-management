@@ -12,6 +12,7 @@ import { ServiceModule } from './service/service.module';
 import { CartModule } from './cart/cart.module';
 import { ContractModule } from './contract/contract.module';
 import { StripeModule } from '../shared/stripe/stripe.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { StripeModule } from '../shared/stripe/stripe.module';
         CartModule,
         ContractModule,
         StripeModule,
+        StatisticsModule,
       ],
     }),
     UploadModule,
@@ -48,6 +50,7 @@ import { StripeModule } from '../shared/stripe/stripe.module';
     CartModule,
     ContractModule,
     StripeModule,
+    StatisticsModule,
   ],
 })
 export class ClientModule {}

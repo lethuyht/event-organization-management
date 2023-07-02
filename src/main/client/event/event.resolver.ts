@@ -9,6 +9,7 @@ import { EventRequestInput, UpsertEventDto } from './dto';
 import { GraphQLResolveInfo } from 'graphql';
 import { ResponseMessageBase } from '@/base/interface';
 import { GetContext, Context } from '@/decorators/user.decorator';
+import { IContract } from '../contract/interface';
 
 @Resolver()
 export class EventResolver {
@@ -40,7 +41,7 @@ export class EventResolver {
 
   @Auth()
   @Roles(ROLE.User)
-  @Mutation(() => ResponseMessageBase, { name: 'createEventRequest' })
+  @Mutation(() => IContract, { name: 'createEventRequest' })
   async createEventRequest(
     @Args('input') input: EventRequestInput,
     @GetContext() ctx: Context,

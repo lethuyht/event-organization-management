@@ -129,9 +129,7 @@ export class EventService {
 
       await Event.update({ id: event.id }, { isUsed: true });
 
-      await trx.getRepository(Contract).save(contract);
-
-      return { message: messageKey.BASE.SUCCESSFULLY, success: true };
+      return await trx.getRepository(Contract).save(contract);
     });
   }
 

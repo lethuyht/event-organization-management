@@ -54,7 +54,7 @@ export class ValidateCartItem {
         },
       )
       .andWhere('Contract.status NOT IN (:...status)', {
-        status: [CONTRACT_STATUS.Cancel],
+        status: [CONTRACT_STATUS.Cancel, CONTRACT_STATUS.AdminCancel],
       })
       .select('SUM(ContractServiceItem.amount)')
       .getRawOne();
@@ -70,7 +70,7 @@ export class ValidateCartItem {
         },
       )
       .andWhere('"contract"."status" NOT IN (:...status)', {
-        status: [CONTRACT_STATUS.Cancel],
+        status: [CONTRACT_STATUS.Cancel, CONTRACT_STATUS.AdminCancel],
       })
       .select('SUM(ContractEventServiceItem.amount)')
       .getRawOne();

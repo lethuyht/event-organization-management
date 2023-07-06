@@ -241,7 +241,7 @@ export class StripeService {
                 );
 
                 await this.emailService.sendEmail({
-                  receiverEmail: 'thanhhoang280202@gmail.com',
+                  receiverEmail: customer.email,
                   subject: `${cronContract.code} is waiting approved!`,
                   html: contractHTML,
                 });

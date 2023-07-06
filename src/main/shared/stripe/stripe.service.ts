@@ -371,7 +371,7 @@ export class StripeService {
         productName: serviceItem.name,
         productSystemId: serviceItem.id,
         imageUrls: serviceItem.images ? [serviceItem.images[0]] : [],
-        description: `Deposit 30% of ${serviceItem.price}VND`,
+        description: `Đặt cọc 30% của ${serviceItem.price} VND`,
       });
 
       lines.push({
@@ -466,7 +466,7 @@ export class StripeService {
         productName: serviceItem.name,
         productSystemId: serviceItem.id,
         imageUrls: serviceItem.images ? [serviceItem.images[0]] : [],
-        description: `Deposit 70% of ${serviceItem.price}$`,
+        description: `Thanh toán 70% còn lại của ${serviceItem.price} VND`,
       });
 
       lines.push({

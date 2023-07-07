@@ -161,10 +161,8 @@ export class StripeService {
               contractCode: contract.code,
               phoneNumber: contract.details.customerInfo.phoneNumber,
               emailTitle: 'Thanh toán thành công',
-              hireDate: dayjs(contract.hireDate).format('DD/MM/YYYY HH:mm'),
-              hireEndDate: dayjs(contract.hireEndDate).format(
-                'DD/MM/YYYY HH:mm',
-              ),
+              hireDate: dayjs(contract.hireDate).format('DD/MM/YYYY'),
+              hireEndDate: dayjs(contract.hireEndDate).format('DD/MM/YYYY'),
               adminMail: configuration.smtpService.from,
               address: contract.address,
               totalPrice: contract.totalPrice * DEPOSIT_PERCENT,
@@ -187,10 +185,8 @@ export class StripeService {
               contractCode: contract.code,
               phoneNumber: contract.details.customerInfo.phoneNumber,
               emailTitle: 'Thanh toán thành công',
-              hireDate: dayjs(contract.hireDate).format('DD/MM/YYYY HH:mm'),
-              hireEndDate: dayjs(contract.hireEndDate).format(
-                'DD/MM/YYYY HH:mm',
-              ),
+              hireDate: dayjs(contract.hireDate).format('DD/MM/YYYY'),
+              hireEndDate: dayjs(contract.hireEndDate).format('DD/MM/YYYY'),
               adminMail: configuration.smtpService.from,
               address: contract.address,
               totalPrice: contract.totalPrice * (1 - DEPOSIT_PERCENT),
@@ -202,7 +198,7 @@ export class StripeService {
 
           await this.emailService.sendEmail({
             receiverEmail: customer.email,
-            subject: 'Checkout remain billing successfully',
+            subject: 'Thanh toán thành công',
             html: billingRemainTemplate,
           });
 
@@ -257,11 +253,9 @@ export class StripeService {
                     contractCode: cronContract.code,
                     emailTitle: 'Trạng thái hợp đồng',
                     phoneNumber: cronContract.details.customerInfo.phoneNumber,
-                    hireDate: dayjs(cronContract.hireDate).format(
-                      'DD/MM/YYYY HH:mm',
-                    ),
+                    hireDate: dayjs(cronContract.hireDate).format('DD/MM/YYYY'),
                     hireEndDate: dayjs(cronContract.hireEndDate).format(
-                      'DD/MM/YYYY HH:mm',
+                      'DD/MM/YYYY',
                     ),
                     address: cronContract.address,
                     totalPrice: cronContract.totalPrice,
@@ -271,7 +265,7 @@ export class StripeService {
 
                 await this.emailService.sendEmail({
                   receiverEmail: customer.email,
-                  subject: `${cronContract.code} is waiting approved!`,
+                  subject: `${cronContract.code} đang chờ xác nhận !`,
                   html: contractHTML,
                 });
               }
@@ -420,7 +414,7 @@ export class StripeService {
         productName: serviceItem.name,
         productSystemId: serviceItem.id,
         imageUrls: serviceItem.images ? [serviceItem.images[0]] : [],
-        description: `Deposit 30% of ${serviceItem.price}VND`,
+        description: `Đặt cọc 30% của ${serviceItem.price} VND`,
       });
 
       lines.push({
@@ -515,7 +509,7 @@ export class StripeService {
         productName: serviceItem.name,
         productSystemId: serviceItem.id,
         imageUrls: serviceItem.images ? [serviceItem.images[0]] : [],
-        description: `Deposit 70% of ${serviceItem.price}$`,
+        description: `Thanh toán 70% còn lại của ${serviceItem.price} VND`,
       });
 
       lines.push({

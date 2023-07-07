@@ -138,6 +138,10 @@ export class Contract extends CustomBaseEntity {
 
   @Field({ nullable: true })
   @Column()
+  refundReceiptUrl: string;
+
+  @Field({ nullable: true })
+  @Column()
   paymentIntentId: string;
 
   @Field(() => User)

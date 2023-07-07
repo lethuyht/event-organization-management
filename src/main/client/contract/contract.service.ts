@@ -37,6 +37,7 @@ import { waitingPaidTemplate } from '@/service/smtp/email-templates/waittingPaid
 import { ServiceItemOfContract } from '@/main/shared/stripe/interface';
 import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem';
 import { ContractCompleted } from '@/service/smtp/email-templates/contractCompleted.template';
+import { getManager } from 'typeorm';
 
 @Injectable()
 export class ContractService {
@@ -218,65 +219,76 @@ export class ContractService {
     }
 
     const customer = await User.findOne({ where: { id: contract.userId } });
+    return getManager().transaction(async (trx) => {
+      let status;
+      switch (currentUser.role.name) {
+        case ROLE.Admin:
+          if (!isApproved) {
+            status = CONTRACT_STATUS.AdminCancel;
+            await trx
+              .getRepository(Contract)
+              .save(Contract.merge(contract, { status }));
+            await this.stripeService.handleRefundContractDeposit(contract);
 
-    switch (currentUser.role.name) {
-      case ROLE.Admin:
-        if (!isApproved) {
-          contract.status = CONTRACT_STATUS.AdminCancel;
-          await this.stripeService.handleRefundContractDeposit(contract);
-
-          //user
-          await emailService.sendEmailCancelSuccessfull({
-            reason:
-              'Hợp đồng của bạn đã bị huỷ vì một vài lí do. Chúng tôi rất lấy làm tiếc và sẽ hoàn lại tiền cho bạn, vui lòng kiểm tra lại số tiền trên tài khoản stripe',
-            receiverEmail: customer.email,
-            subject: 'Cập nhật trạng thái hợp đồng',
-            contract: contract,
-            customerName: contract.details.customerInfo.name,
-          });
-          //admin
-          await emailService.sendEmailCancelSuccessfull({
-            reason: 'Admin cập nhật trạng thái',
-            receiverEmail: configuration.smtpService.from,
-            subject: 'Cập nhật trạng thái hợp đồng',
-            contract: contract,
-            customerName: contract.details.customerInfo.name,
-          });
-        } else {
-          contract.status = CONTRACT_STATUS.InProgress;
-        }
-
-        break;
-      default:
-        if (!isApproved) {
-          if (dayjs().isAfter(contract.hireDate)) {
-            throw new BadRequestException(
-              'Bạn không thể huỷ hợp đồng đã có hiệu lực',
-            );
+            //user
+            await emailService.sendEmailCancelSuccessfull({
+              reason:
+                'Hợp đồng của bạn đã bị huỷ vì một vài lí do. Chúng tôi rất lấy làm tiếc và sẽ hoàn lại tiền cho bạn, vui lòng kiểm tra lại số tiền trên tài khoản stripe',
+              receiverEmail: customer.email,
+              subject: 'Cập nhật trạng thái hợp đồng',
+              contract: contract,
+              customerName: contract.details.customerInfo.name,
+            });
+            //admin
+            await emailService.sendEmailCancelSuccessfull({
+              reason: 'Admin cập nhật trạng thái',
+              receiverEmail: configuration.smtpService.from,
+              subject: 'Cập nhật trạng thái hợp đồng',
+              contract: contract,
+              customerName: contract.details.customerInfo.name,
+            });
+          } else {
+            status = CONTRACT_STATUS.InProgress;
+            await trx
+              .getRepository(Contract)
+              .save(Contract.merge(contract, { status }));
           }
 
-          await emailService.sendEmailCancelSuccessfull({
-            reason:
-              'Vì thao tác của người dùng nên sẽ hợp đồng sẽ không hoàn lại tiền đã đặt cọc',
-            receiverEmail: customer.email,
-            subject: 'Cập nhật trạng thái hợp đồng',
-            contract: contract,
-            customerName: contract.details.customerInfo.name,
-          });
+          break;
+        default:
+          if (!isApproved) {
+            if (dayjs().isAfter(contract.hireDate)) {
+              throw new BadRequestException(
+                'Bạn không thể huỷ hợp đồng đã có hiệu lực',
+              );
+            }
 
-          await emailService.sendEmailCancelSuccessfull({
-            reason: 'Người dùng đã huỷ hợp đồng thành công',
-            receiverEmail: configuration.smtpService.from,
-            subject: 'Cập nhật trạng thái hợp đồng',
-            contract: contract,
-            customerName: contract.details.customerInfo.name,
-          });
+            await emailService.sendEmailCancelSuccessfull({
+              reason:
+                'Vì thao tác của người dùng nên sẽ hợp đồng sẽ không hoàn lại tiền đã đặt cọc',
+              receiverEmail: customer.email,
+              subject: 'Cập nhật trạng thái hợp đồng',
+              contract: contract,
+              customerName: contract.details.customerInfo.name,
+            });
 
-          contract.status = CONTRACT_STATUS.Cancel;
-        }
-    }
+            await emailService.sendEmailCancelSuccessfull({
+              reason: 'Người dùng đã huỷ hợp đồng thành công',
+              receiverEmail: configuration.smtpService.from,
+              subject: 'Cập nhật trạng thái hợp đồng',
+              contract: contract,
+              customerName: contract.details.customerInfo.name,
+            });
 
-    return Contract.save(contract);
+            status = CONTRACT_STATUS.Cancel;
+            await trx
+              .getRepository(Contract)
+              .save(Contract.merge(contract, { status }));
+          }
+      }
+
+      return contract;
+    });
   }
 
   async updateStatusContract(input: UpdateContractStatusDto) {

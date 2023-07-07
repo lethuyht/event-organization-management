@@ -9,4 +9,7 @@ export const WEBHOOK_EVENT_TYPE = {
     SUCCEEDED: 'payment_intent.succeeded',
     CREATED: 'payment_intent.created',
   },
+  CHARGE: {
+    REFUNDED: 'charge.refunded',
+  },
 };

@@ -70,6 +70,10 @@ export class StripeService {
           await this.handleCheckoutSuccessfully(event);
           break;
         }
+
+        case WEBHOOK_EVENT_TYPE.CHARGE.REFUNDED: {
+          await this.handleReceiveReceiptUrl(event);
+        }
       }
       return {
         statusCode: 200,
@@ -82,6 +86,23 @@ export class StripeService {
         statusCode: 500,
         message: `Webhook Error: ${error.message}`,
       };
+    }
+  }
+
+  async handleReceiveReceiptUrl(event: Stripe.Event) {
+    const refundData = event.data.object as Stripe.Charge;
+    if (refundData.paid) {
+      const contract = await Contract.findOne({
+        where: { paymentIntentId: refundData.payment_intent as string },
+      });
+
+      if (!contract) {
+        throw new BadRequestException('Không tìm thấy hợp đồng đã đặt cọc');
+      }
+
+      contract.refundReceiptUrl = refundData.receipt_url as string;
+
+      await Contract.save(contract);
     }
   }
 

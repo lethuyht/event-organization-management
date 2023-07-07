@@ -383,7 +383,7 @@ export class StripeService {
       case CONTRACT_TYPE.Service: {
         const contractServiceItems = await ContractServiceItem.find({
           where: { contractId: contract.id },
-          relations: ['serviceItem'],
+          relations: ['serviceItem', 'serviceItem.service'],
         });
 
         for (const {
@@ -398,14 +398,16 @@ export class StripeService {
             id: serviceItem.id,
             amount,
             price: price * dayjs(hireEndDate).diff(hireDate, 'day'),
-            images: serviceItem.images ? [serviceItem.images[0]] : [],
+            images: serviceItem.service.images
+              ? [serviceItem.service.images[0]]
+              : [],
           });
         }
       }
       case CONTRACT_TYPE.Event: {
         const contractEventServiceItems = await ContractEventServiceItem.find({
           where: { contractEvent: { contractId: contract.id } },
-          relations: ['contractEvent', 'serviceItem'],
+          relations: ['contractEvent', 'serviceItem', 'serviceItem.service'],
         });
 
         for (const {
@@ -420,7 +422,9 @@ export class StripeService {
             price:
               price *
               dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
-            images: serviceItem.images ? [serviceItem.images[0]] : [],
+            images: serviceItem.service.images
+              ? [serviceItem.service.images[0]]
+              : [],
           });
         }
       }
@@ -478,7 +482,7 @@ export class StripeService {
       case CONTRACT_TYPE.Service: {
         const contractServiceItems = await ContractServiceItem.find({
           where: { contractId: contract.id },
-          relations: ['serviceItem'],
+          relations: ['serviceItem', 'serviceItem.service'],
         });
 
         for (const {
@@ -493,14 +497,16 @@ export class StripeService {
             id: serviceItem.id,
             amount,
             price: price * dayjs(hireEndDate).diff(hireDate, 'day'),
-            images: serviceItem.images ? [serviceItem.images[0]] : [],
+            images: serviceItem.service.images
+              ? [serviceItem.service.images[0]]
+              : [],
           });
         }
       }
       case CONTRACT_TYPE.Event: {
         const contractEventServiceItems = await ContractEventServiceItem.find({
           where: { contractEvent: { contractId: contract.id } },
-          relations: ['contractEvent', 'serviceItem'],
+          relations: ['contractEvent', 'serviceItem', 'serviceItem.service'],
         });
 
         for (const {
@@ -515,7 +521,9 @@ export class StripeService {
             price:
               price *
               dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
-            images: serviceItem.images ? [serviceItem.images[0]] : [],
+            images: serviceItem.service.images
+              ? [serviceItem.service.images[0]]
+              : [],
           });
         }
       }

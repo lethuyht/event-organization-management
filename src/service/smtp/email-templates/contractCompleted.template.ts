@@ -1,4 +1,4 @@
-export const remindApprovedContract = `<html>
+export const ContractCompleted = `<html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>Fluffy</title>
@@ -181,18 +181,9 @@ export const remindApprovedContract = `<html>
         margin-top: 0px;
         color:  #c0392b;">{{emailTitle}}</p>
         <div class="content">
-             <p>Hợp đồng {{contractCode}} sẽ bắt đầu vào ngày {{hireDate}}</p>
-             <p>Khách hàng: {{customerName}}</p>
-             <p>Danh sách sản phẩm:</p>
-             <ul>
-             {{#each serviceItems}}
-                <li>{{name}} - {{amount}} - {{price}} VND</li>
-             {{/each}}
-             </ul>
-             <p>Địa chỉ: {{address}}</p>
-             <p>Thời gian: {{hireDate}} - {{hireEndDate}}</p>
-             <p>Giá: {{totalPrice}} VND</p>
-            <p>Vui lòng chuyển trạng thái của hợp đồng trước khi thời gian hợp đồng có hiệu lực hoặc sẽ tự động hủy nếu bạn không có hành động nào khác.</p>
+             <p>Hợp đồng {{contractCode}} đã hoàn thành.</p>
+            <p>Cảm ơn bạn vì đã tin tưởng và lựa chọn dịch vụ của chúng tôi.</p>
+            <p>Mọi thắc mắc xin liên hệ <a>{{adminMail}}</a></p>
       </div>
     </div>
     

@@ -29,10 +29,21 @@ import { DepositContractDto } from '@/main/shared/stripe/dto';
 import puppeteer from 'puppeteer';
 import { ContractTemplate } from '@/main/shared/contract/contract.template';
 import { ServiceItem } from '@/db/entities/ServiceItem';
+import { CronJob } from 'cron';
+import { emailService } from '@/service/smtp/service';
+import { configuration } from '@/config';
+import { SchedulerRegistry } from '@nestjs/schedule';
+import { waitingPaidTemplate } from '@/service/smtp/email-templates/waittingPaidTemplate.template';
+import { ServiceItemOfContract } from '@/main/shared/stripe/interface';
+import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem';
+import { ContractCompleted } from '@/service/smtp/email-templates/contractCompleted.template';
 
 @Injectable()
 export class ContractService {
-  constructor(private stripeService: StripeService) {}
+  constructor(
+    private stripeService: StripeService,
+    private scheduleRegister: SchedulerRegistry,
+  ) {}
   async getOne(id: string, info: GraphQLResolveInfo) {
     const relations = info ? Contract.getRelations(info) : [];
 
@@ -136,7 +147,46 @@ export class ContractService {
       .whereInIds(cartItemIds)
       .execute();
 
-    return await Contract.save(contract);
+    await Contract.save(contract);
+
+    //handle cron
+    const cancelDate = dayjs().add(3, 'day').format();
+    const cancelJob = new CronJob(
+      new Date(cancelDate),
+      async () => {
+        const cronContract = await Contract.findOne({ id: contract.id });
+        if (cronContract.status === CONTRACT_STATUS.Draft) {
+          //user
+          cronContract.status = CONTRACT_STATUS.Cancel;
+          await emailService.sendEmailCancelSuccessfull({
+            receiverEmail: user.email,
+            subject: 'Cập nhật trạng thái hợp đồng',
+            reason: 'Hợp đồng đã bị huỷ do quá hạn đặc cọc',
+            contract,
+            customerName: `${user.firstName} ${user.lastName}`,
+          });
+
+          await emailService.sendEmailCancelSuccessfull({
+            receiverEmail: configuration.smtpService.from,
+            subject: 'Cập nhật trạng thái hợp đồng',
+            reason: 'Hợp đồng đã bị huỷ do quá hạn đặc cọc',
+            contract,
+            customerName: `${user.firstName} ${user.lastName}`,
+          });
+
+          await Contract.save(cronContract);
+        }
+      },
+      null,
+      true,
+    );
+
+    this.scheduleRegister.addCronJob(
+      `cancel-${contract.id}-${cancelDate}`,
+      cancelJob,
+    );
+
+    return contract;
   }
 
   async confirmContractDeposit(input: ConfirmContractDeposit, user: User) {
@@ -167,11 +217,31 @@ export class ContractService {
       );
     }
 
+    const customer = await User.findOne({ where: { id: contract.userId } });
+
     switch (currentUser.role.name) {
       case ROLE.Admin:
         if (!isApproved) {
           contract.status = CONTRACT_STATUS.AdminCancel;
           await this.stripeService.handleRefundContractDeposit(contract);
+
+          //user
+          await emailService.sendEmailCancelSuccessfull({
+            reason:
+              'Hợp đồng của bạn đã bị huỷ vì một vài lí do. Chúng tôi rất lấy làm tiếc và sẽ hoàn lại tiền cho bạn, vui lòng kiểm tra lại số tiền trên tài khoản stripe',
+            receiverEmail: customer.email,
+            subject: 'Cập nhật trạng thái hợp đồng',
+            contract: contract,
+            customerName: contract.details.customerInfo.name,
+          });
+          //admin
+          await emailService.sendEmailCancelSuccessfull({
+            reason: 'Admin cập nhật trạng thái',
+            receiverEmail: configuration.smtpService.from,
+            subject: 'Cập nhật trạng thái hợp đồng',
+            contract: contract,
+            customerName: contract.details.customerInfo.name,
+          });
         } else {
           contract.status = CONTRACT_STATUS.InProgress;
         }
@@ -184,6 +254,23 @@ export class ContractService {
               'Bạn không thể huỷ hợp đồng đã có hiệu lực',
             );
           }
+
+          await emailService.sendEmailCancelSuccessfull({
+            reason:
+              'Vì thao tác của người dùng nên sẽ hợp đồng sẽ không hoàn lại tiền đã đặt cọc',
+            receiverEmail: customer.email,
+            subject: 'Cập nhật trạng thái hợp đồng',
+            contract: contract,
+            customerName: contract.details.customerInfo.name,
+          });
+
+          await emailService.sendEmailCancelSuccessfull({
+            reason: 'Người dùng đã huỷ hợp đồng thành công',
+            receiverEmail: configuration.smtpService.from,
+            subject: 'Cập nhật trạng thái hợp đồng',
+            contract: contract,
+            customerName: contract.details.customerInfo.name,
+          });
 
           contract.status = CONTRACT_STATUS.Cancel;
         }
@@ -207,6 +294,8 @@ export class ContractService {
       throw new BadRequestException('Trạng thái hợp đồng không hợp lệ');
     }
 
+    const customer = await User.findOne({ where: { id: contract.userId } });
+
     switch (input.status) {
       case CONTRACT_STATUS.WaitingPaid:
         if (dayjs(new Date()).isBefore(contract.hireEndDate)) {
@@ -215,9 +304,65 @@ export class ContractService {
           );
         }
 
+        let serviceItems: ServiceItemOfContract[];
+        if (contract.type === CONTRACT_TYPE.Service) {
+          const contractServiceItem = await ContractServiceItem.find({
+            where: { contractId: contract.id },
+            relations: ['serviceItem'],
+          });
+
+          serviceItems = contractServiceItem.map((el) => {
+            return {
+              amount: el.amount,
+              name: el.serviceItem.name,
+              price: el.price * el.amount * 0.7,
+            };
+          });
+        } else {
+          const contractEventServiceItem = await ContractEventServiceItem.find({
+            where: { contractEvent: { contractId: contract.id } },
+            relations: ['contractEvent', 'serviceItem'],
+          });
+
+          serviceItems = contractEventServiceItem.map((el) => {
+            return {
+              amount: el.amount,
+              name: el.serviceItem.name,
+              price: el.price * el.amount * 0.7,
+            };
+          });
+        }
+
+        const html = await emailService.renderHtml(waitingPaidTemplate, {
+          emailTitle: 'Thanh toán hợp đồng',
+          contractCode: contract.code,
+          customerName: contract.details.customerInfo.name,
+          serviceItems,
+          address: contract.address,
+          hireDate: dayjs(contract.hireDate).format('DD/MM/YYYY HH:mm'),
+          hireEndDate: dayjs(contract.hireEndDate).format('DD/MM/YYYY HH:mm'),
+          totalPrice: contract.totalPrice * 0.7,
+          adminMail: configuration.smtpService.from,
+        });
+
+        await emailService.sendEmail({
+          receiverEmail: customer.email,
+          subject: 'Thanh toán phần còn lại',
+          html,
+        });
         break;
 
       case CONTRACT_STATUS.Completed:
+        const htmltemplate = await emailService.renderHtml(ContractCompleted, {
+          contractCode: contract.code,
+          emailTitle: 'Hợp đồng đã hoàn thành',
+        });
+
+        await emailService.sendEmail({
+          receiverEmail: customer.email,
+          subject: 'Hoàn tất hợp đồng',
+          html: htmltemplate,
+        });
         break;
     }
 

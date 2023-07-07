@@ -28,6 +28,7 @@ import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
 import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem';
 import { DepositTemplate } from '@/service/smtp/email-templates/depositSuccess.template';
 import { BillingRemainSuccessfully } from '@/service/smtp/email-templates/billingRemainSuccessfully.template';
+import { BillingRemainAdminTemplate } from '@/service/smtp/email-templates/billingRemainAdmin.template';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -182,7 +183,7 @@ export class StripeService {
           const billingRemainTemplate = await this.emailService.renderHtml(
             BillingRemainSuccessfully,
             {
-              customerName: contract.details.contractName,
+              customerName: contract.details.customerInfo.name,
               contractCode: contract.code,
               phoneNumber: contract.details.customerInfo.phoneNumber,
               emailTitle: 'Thanh toán thành công',
@@ -192,7 +193,7 @@ export class StripeService {
               ),
               adminMail: configuration.smtpService.from,
               address: contract.address,
-              totalPrice: contract.totalPrice * DEPOSIT_PERCENT,
+              totalPrice: contract.totalPrice * (1 - DEPOSIT_PERCENT),
               serviceItems: serviceItems.map((item) => {
                 return { ...item, price: item.price * (1 - DEPOSIT_PERCENT) };
               }),
@@ -203,6 +204,34 @@ export class StripeService {
             receiverEmail: customer.email,
             subject: 'Checkout remain billing successfully',
             html: billingRemainTemplate,
+          });
+
+          //admin
+
+          const htmlRemain = this.emailService.renderHtml(
+            BillingRemainAdminTemplate,
+            {
+              customerName: contract.details.customerInfo.name,
+              contractCode: contract.code,
+              phoneNumber: contract.details.customerInfo.phoneNumber,
+              emailTitle: 'Thanh toán thành công',
+              hireDate: dayjs(contract.hireDate).format('DD/MM/YYYY HH:mm'),
+              hireEndDate: dayjs(contract.hireEndDate).format(
+                'DD/MM/YYYY HH:mm',
+              ),
+              adminMail: configuration.smtpService.from,
+              address: contract.address,
+              totalPrice: contract.totalPrice * (1 - DEPOSIT_PERCENT),
+              serviceItems: serviceItems.map((item) => {
+                return { ...item, price: item.price * (1 - DEPOSIT_PERCENT) };
+              }),
+            },
+          );
+
+          await this.emailService.sendEmail({
+            receiverEmail: configuration.smtpService.from,
+            subject: 'Checkout remain billing successfully',
+            html: htmlRemain,
           });
         }
 
@@ -256,8 +285,28 @@ export class StripeService {
             async () => {
               const cronContract = await Contract.findOne({ id: contract.id });
 
-              if (cronContract.status === CONTRACT_STATUS.InProgress) {
+              if (cronContract.status === CONTRACT_STATUS.DepositPaid) {
                 await this.handleRefundContractDeposit(cronContract);
+                //user
+                await this.emailService.sendEmailCancelSuccessfull({
+                  reason:
+                    'Hợp đồng của bạn đã bị huỷ vì một vài lí do. Chúng tôi rất lấy làm tiếc và sẽ hoàn lại tiền cho bạn, vui lòng kiểm tra lại số tiền trên tài khoản stripe',
+                  receiverEmail: customer.email,
+                  subject: 'Cập nhật trạng thái hợp đồng',
+                  contract: cronContract,
+                  customerName: cronContract.details.customerInfo.name,
+                });
+
+                //admin
+
+                await this.emailService.sendEmailCancelSuccessfull({
+                  reason: `Hợp đồng ${cronContract.code} bị huỷ vì chưa chuyển trạng thái. Tiền đặt cọc sẽ được hoàn về cho người dùng`,
+                  receiverEmail: configuration.smtpService.from,
+                  subject: 'Cập nhật trạng thái hợp đồng',
+                  contract: cronContract,
+                  customerName: cronContract.details.customerInfo.name,
+                });
+
                 contract.status = CONTRACT_STATUS.AdminCancel;
                 await Contract.save(cronContract);
               }

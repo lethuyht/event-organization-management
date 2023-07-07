@@ -1,4 +1,4 @@
-export const remindApprovedContract = `<html>
+export const BillingRemainAdminTemplate = `<html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>Fluffy</title>
@@ -181,8 +181,9 @@ export const remindApprovedContract = `<html>
         margin-top: 0px;
         color:  #c0392b;">{{emailTitle}}</p>
         <div class="content">
-             <p>Hợp đồng {{contractCode}} sẽ bắt đầu vào ngày {{hireDate}}</p>
+             <p>Hợp đồng {{contractCode}} đã được thanh toán thành công 70% còn lại.</p>
              <p>Khách hàng: {{customerName}}</p>
+             <p>Số điện thoai: {{phoneNumber}}</p>
              <p>Danh sách sản phẩm:</p>
              <ul>
              {{#each serviceItems}}
@@ -192,7 +193,7 @@ export const remindApprovedContract = `<html>
              <p>Địa chỉ: {{address}}</p>
              <p>Thời gian: {{hireDate}} - {{hireEndDate}}</p>
              <p>Giá: {{totalPrice}} VND</p>
-            <p>Vui lòng chuyển trạng thái của hợp đồng trước khi thời gian hợp đồng có hiệu lực hoặc sẽ tự động hủy nếu bạn không có hành động nào khác.</p>
+            <p>Vui lòng chuyển trạng thái hợp đồng sang hoàn tất</p>
       </div>
     </div>
     

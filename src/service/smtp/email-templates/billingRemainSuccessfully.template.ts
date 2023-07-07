@@ -192,7 +192,7 @@ export const BillingRemainSuccessfully = `<html>
              </ul>
              <p>Địa chỉ: {{address}}</p>
              <p>Thời gian: {{hireDate}} - {{hireEndDate}}</p>
-             <p>Price: {{totalPrice}} VND</p>
+             <p>Giá: {{totalPrice}} VND</p>
             <p>Cảm ơn bạn vì đã tin tưởng và lựa chọn dịch vụ của chúng tôi.</p>
             <p>Mọi thắc mắc xin liên hệ <a>{{adminMail}}</a></p>
       </div>

@@ -192,7 +192,7 @@ export const DepositTemplate = `<html>
              </ul>
              <p>Địa chỉ: {{address}}</p>
              <p>Thời gian: {{hireDate}} - {{hireEndDate}}</p>
-             <p>Price: {{totalPrice}} VND</p>
+             <p>Giá: {{totalPrice}} VND</p>
             <p>Cảm ơn bạn vì đã tin tưởng và lựa chọn dịch vụ của chúng tôi. Chúng tôi sẽ nhanh chóng phản hồi và cập nhập trạng thái sớm nhất có thể.</p>
             <p>Mọi thắc mắc xin liên hệ <a>{{adminMail}}</a></p>
       </div>

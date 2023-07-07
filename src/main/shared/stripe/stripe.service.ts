@@ -70,6 +70,10 @@ export class StripeService {
           await this.handleCheckoutSuccessfully(event);
           break;
         }
+
+        case WEBHOOK_EVENT_TYPE.CHARGE.REFUNDED: {
+          await this.handleReceiveReceiptUrl(event);
+        }
       }
       return {
         statusCode: 200,
@@ -82,6 +86,23 @@ export class StripeService {
         statusCode: 500,
         message: `Webhook Error: ${error.message}`,
       };
+    }
+  }
+
+  async handleReceiveReceiptUrl(event: Stripe.Event) {
+    const refundData = event.data.object as Stripe.Charge;
+    if (refundData.paid) {
+      const contract = await Contract.findOne({
+        where: { paymentIntentId: refundData.payment_intent as string },
+      });
+
+      if (!contract) {
+        throw new BadRequestException('Không tìm thấy hợp đồng đã đặt cọc');
+      }
+
+      contract.refundReceiptUrl = refundData.receipt_url as string;
+
+      await Contract.save(contract);
     }
   }
 
@@ -362,7 +383,7 @@ export class StripeService {
       case CONTRACT_TYPE.Service: {
         const contractServiceItems = await ContractServiceItem.find({
           where: { contractId: contract.id },
-          relations: ['serviceItem'],
+          relations: ['serviceItem', 'serviceItem.service'],
         });
 
         for (const {
@@ -377,14 +398,16 @@ export class StripeService {
             id: serviceItem.id,
             amount,
             price: price * dayjs(hireEndDate).diff(hireDate, 'day'),
-            images: serviceItem.images ? [serviceItem.images[0]] : [],
+            images: serviceItem.service.images
+              ? [serviceItem.service.images[0]]
+              : [],
           });
         }
       }
       case CONTRACT_TYPE.Event: {
         const contractEventServiceItems = await ContractEventServiceItem.find({
           where: { contractEvent: { contractId: contract.id } },
-          relations: ['contractEvent', 'serviceItem'],
+          relations: ['contractEvent', 'serviceItem', 'serviceItem.service'],
         });
 
         for (const {
@@ -399,7 +422,9 @@ export class StripeService {
             price:
               price *
               dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
-            images: serviceItem.images ? [serviceItem.images[0]] : [],
+            images: serviceItem.service.images
+              ? [serviceItem.service.images[0]]
+              : [],
           });
         }
       }
@@ -457,7 +482,7 @@ export class StripeService {
       case CONTRACT_TYPE.Service: {
         const contractServiceItems = await ContractServiceItem.find({
           where: { contractId: contract.id },
-          relations: ['serviceItem'],
+          relations: ['serviceItem', 'serviceItem.service'],
         });
 
         for (const {
@@ -472,14 +497,16 @@ export class StripeService {
             id: serviceItem.id,
             amount,
             price: price * dayjs(hireEndDate).diff(hireDate, 'day'),
-            images: serviceItem.images ? [serviceItem.images[0]] : [],
+            images: serviceItem.service.images
+              ? [serviceItem.service.images[0]]
+              : [],
           });
         }
       }
       case CONTRACT_TYPE.Event: {
         const contractEventServiceItems = await ContractEventServiceItem.find({
           where: { contractEvent: { contractId: contract.id } },
-          relations: ['contractEvent', 'serviceItem'],
+          relations: ['contractEvent', 'serviceItem', 'serviceItem.service'],
         });
 
         for (const {
@@ -494,7 +521,9 @@ export class StripeService {
             price:
               price *
               dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
-            images: serviceItem.images ? [serviceItem.images[0]] : [],
+            images: serviceItem.service.images
+              ? [serviceItem.service.images[0]]
+              : [],
           });
         }
       }

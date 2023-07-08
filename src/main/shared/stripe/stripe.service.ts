@@ -178,7 +178,7 @@ export class StripeService {
           const depositTemplate = await this.emailService.renderHtml(
             DepositTemplate,
             {
-              customerName: contract.details.contractName,
+              customerName: contract.details.customerInfo.name,
               contractCode: contract.code,
               phoneNumber: contract.details.customerInfo.phoneNumber,
               emailTitle: 'Thanh toán thành công',
@@ -397,7 +397,9 @@ export class StripeService {
             name: serviceItem.name,
             id: serviceItem.id,
             amount,
-            price: price * dayjs(hireEndDate).diff(hireDate, 'day'),
+            price:
+              price *
+              Math.round(dayjs(hireEndDate).diff(hireDate, 'day', true)),
             images: serviceItem.service.images
               ? [serviceItem.service.images[0]]
               : [],
@@ -421,7 +423,13 @@ export class StripeService {
             amount,
             price:
               price *
-              dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
+              Math.round(
+                dayjs(contract.hireEndDate).diff(
+                  contract.hireDate,
+                  'day',
+                  true,
+                ),
+              ),
             images: serviceItem.service.images
               ? [serviceItem.service.images[0]]
               : [],
@@ -496,7 +504,9 @@ export class StripeService {
             name: serviceItem.name,
             id: serviceItem.id,
             amount,
-            price: price * dayjs(hireEndDate).diff(hireDate, 'day'),
+            price:
+              price *
+              Math.round(dayjs(hireEndDate).diff(hireDate, 'day', true)),
             images: serviceItem.service.images
               ? [serviceItem.service.images[0]]
               : [],
@@ -520,7 +530,9 @@ export class StripeService {
             amount,
             price:
               price *
-              dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
+              Math.round(
+                dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
+              ),
             images: serviceItem.service.images
               ? [serviceItem.service.images[0]]
               : [],

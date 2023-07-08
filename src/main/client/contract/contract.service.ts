@@ -38,6 +38,7 @@ import { ServiceItemOfContract } from '@/main/shared/stripe/interface';
 import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem';
 import { ContractCompleted } from '@/service/smtp/email-templates/contractCompleted.template';
 import { getManager } from 'typeorm';
+import { InprogressContractTemplate } from '@/service/smtp/email-templates/inprogressContract.template';
 
 @Injectable()
 export class ContractService {
@@ -249,6 +250,61 @@ export class ContractService {
             });
           } else {
             status = CONTRACT_STATUS.InProgress;
+
+            let serviceItems: ServiceItemOfContract[];
+            if (contract.type === CONTRACT_TYPE.Service) {
+              const contractServiceItem = await ContractServiceItem.find({
+                where: { contractId: contract.id },
+                relations: ['serviceItem'],
+              });
+
+              serviceItems = contractServiceItem.map((el) => {
+                return {
+                  amount: el.amount,
+                  name: el.serviceItem.name,
+                  price: el.price * el.amount,
+                };
+              });
+            } else {
+              const contractEventServiceItem =
+                await ContractEventServiceItem.find({
+                  where: { contractEvent: { contractId: contract.id } },
+                  relations: ['contractEvent', 'serviceItem'],
+                });
+
+              serviceItems = contractEventServiceItem.map((el) => {
+                return {
+                  amount: el.amount,
+                  name: el.serviceItem.name,
+                  price: el.price * el.amount,
+                };
+              });
+            }
+
+            const inprogressTemplate = await emailService.renderHtml(
+              InprogressContractTemplate,
+              {
+                emailTitle: 'Cập nhật trạng thái hợp đồng',
+                contractCode: contract.code,
+                customerName: contract.details.customerInfo.name,
+                phoneNumber: contract.details.customerInfo.phoneNumber,
+                serviceItems: serviceItems,
+                address: contract.address,
+                hireDate: dayjs(contract.hireDate).format('DD/MM/YYYY HH:mm'),
+                hireEndDate: dayjs(contract.hireEndDate).format(
+                  'DD/MM/YYYY HH:mm',
+                ),
+                totalPrice: contract.totalPrice,
+                adminMail: configuration.smtpService.from,
+              },
+            );
+
+            await emailService.sendEmail({
+              receiverEmail: customer.email,
+              html: inprogressTemplate,
+              subject: 'Trạng thái hợp đồng',
+            });
+
             await trx
               .getRepository(Contract)
               .save(Contract.merge(contract, { status }));

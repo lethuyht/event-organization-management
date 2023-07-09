@@ -11,6 +11,7 @@ import { ContractEventServiceItem } from '@/db/entities/ContractEventServiceItem
 import { ContractServiceItem } from '@/db/entities/ContractServiceItem';
 import { StatisticResult } from './interface';
 import _ from 'lodash';
+import { DEPOSIT_PERCENT } from '@/common/constant';
 
 @Injectable()
 export class StatisticService {
@@ -53,7 +54,18 @@ export class StatisticService {
       .set('year', year)
       .endOf('month');
 
-    for (const { hireDate, hireEndDate, totalPrice, type, id } of contracts) {
+    for (const {
+      hireDate,
+      hireEndDate,
+      totalPrice,
+      type,
+      id,
+      paymentIntentId,
+      status,
+    } of contracts) {
+      if (!paymentIntentId) {
+        continue;
+      }
       let startDate = startOfMonth;
       let endDate = endOfMonth;
 
@@ -99,7 +111,12 @@ export class StatisticService {
 
           numberOfService = +(totalServiceItem?.total || 0);
 
-          result.revenue.service += totalPrice;
+          if (status === CONTRACT_STATUS.Cancel) {
+            result.revenue.service += totalPrice * DEPOSIT_PERCENT;
+          } else {
+            result.revenue.service += totalPrice;
+          }
+
           break;
         }
       }

@@ -40,7 +40,7 @@ export class StatisticService {
       .setParameters({
         year,
         month,
-        status: [CONTRACT_STATUS.Draft],
+        status: [CONTRACT_STATUS.Draft, CONTRACT_STATUS.AdminCancel],
       })
       .getMany();
 

@@ -105,7 +105,7 @@ export class ContractService {
         totalPrice +=
           item.amount *
           (item.serviceItem?.price || 0) *
-          dayjs(item.hireEndDate).diff(item.hireDate, 'day');
+          Math.round(dayjs(item.hireEndDate).diff(item.hireDate, 'day', true));
 
         await ValidateCartItem.availableServiceItemValidate({
           serviceItemId: index,

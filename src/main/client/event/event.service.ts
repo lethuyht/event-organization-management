@@ -119,7 +119,9 @@ export class EventService {
         hireDate,
         hireEndDate,
         address,
-        totalPrice: totalPrice * dayjs(hireEndDate).diff(hireDate, 'day'),
+        totalPrice:
+          totalPrice *
+          Math.round(dayjs(hireEndDate).diff(hireDate, 'day', true)),
         details: details,
         contractEvent: {
           eventId: eventId,

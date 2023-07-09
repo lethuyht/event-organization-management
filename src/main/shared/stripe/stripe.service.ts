@@ -531,7 +531,11 @@ export class StripeService {
             price:
               price *
               Math.round(
-                dayjs(contract.hireEndDate).diff(contract.hireDate, 'day'),
+                dayjs(contract.hireEndDate).diff(
+                  contract.hireDate,
+                  'day',
+                  true,
+                ),
               ),
             images: serviceItem.service.images
               ? [serviceItem.service.images[0]]
